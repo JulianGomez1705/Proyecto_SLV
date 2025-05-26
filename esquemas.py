@@ -1,7 +1,7 @@
 # Proyecto_SLV/esquemas.py
 
 from pydantic import BaseModel, Field
-from typing import Optional, List # <--- ¡Aquí está la corrección!
+from typing import Optional, List
 
 
 class EquipoBase(BaseModel):
@@ -15,7 +15,7 @@ class JugadorBase(BaseModel):
     equipo_id: Optional[int] = Field(None, example=1, description="ID del equipo al que pertenece el jugador (opcional en creación)")
 
 class EstadisticasBase(BaseModel):
-    puntosGenerales: int = Field(0, ge=0, example=150)
+    puntosGenerales: int= Field(0, ge=0, example=150)
     puntosAtaque: int = Field(0, ge=0, example=50)
     puntosBloqueo: int = Field(0, ge=0, example=30)
     puntosSaque: int = Field(0, ge=0, example=20)
