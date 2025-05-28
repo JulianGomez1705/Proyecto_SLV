@@ -76,3 +76,38 @@ def eliminar_equipo(id_equipo: int, sesion_bd: Session = Depends(obtener_sesion_
     sesion_bd.delete(equipo_bd)
     sesion_bd.commit()
     return {}
+
+# --- ENDPOINTS PARA JUGADORES ---
+
+@app.post("/jugadores/", response_model=JugadorResponse, status_code=status.HTTP_201_CREATED)
+def crear_jugador(datos_jugador: JugadorCreate, sesion_bd: Session = Depends(obtener_sesion_bd)):
+    if datos_jugador.equipo_id:
+        equipo_bd = sesion_bd.query(Equipo_db).filter(Equipo_db.id == datos_jugador.equipo_id).first()
+        if not equipo_bd:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipo no encontrado")
+
+    nuevo_jugador_bd = Jugador_db(
+        nombre=datos_jugador.nombre,
+        posicion=datos_jugador.posicion,
+        equipo_id=datos_jugador.equipo_id
+    )
+
+    if datos_jugador.estadisticas:
+        estadisticas_bd = Estadisticas_db(**datos_jugador.estadisticas.model_dump())
+        nuevo_jugador_bd.estadisticas = estadisticas_bd
+
+    if datos_jugador.estadoJugador:
+        estado_jugador_bd = EstadoJugador_db(**datos_jugador.estadoJugador.model_dump())
+        nuevo_jugador_bd.estadoJugador = estado_jugador_bd
+
+    sesion_bd.add(nuevo_jugador_bd)
+    sesion_bd.commit()
+    sesion_bd.refresh(nuevo_jugador_bd)
+
+    nuevo_jugador_bd = sesion_bd.query(Jugador_db).options(
+        joinedload(Jugador_db.equipo),
+        joinedload(Jugador_db.estadisticas),
+        joinedload(Jugador_db.estadoJugador)
+    ).filter(Jugador_db.id == nuevo_jugador_bd.id).first()
+
+    return nuevo_jugador_bd
