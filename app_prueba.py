@@ -2,9 +2,10 @@ from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session, joinedload
 
-from .database.config import SessionLocal, engine, obtener_sesion_bd
-from .database.models import Equipo_db, Jugador_db, Estadisticas_db, EstadoJugador_db, Base
-from .esquemas import (
+# Importaciones absolutas
+from database.config import SessionLocal, engine, obtener_sesion_bd
+from database.models import Equipo_db, Jugador_db, Estadisticas_db, EstadoJugador_db, Base
+from esquemas import (
     EquipoCreate, EquipoResponse,
     JugadorCreate, JugadorBase, JugadorResponse,
     EstadisticasBase, EstadisticasResponse,
