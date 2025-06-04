@@ -6,6 +6,10 @@ class EquipoBase(BaseModel):
     ubicacion: str = Field(..., example="Ciudad Deportiva")
     entrenador: str = Field(..., example="Juan Pérez")
 
+# AÑADIDO: Definición de EquipoCreate
+class EquipoCreate(EquipoBase):
+    pass # No necesita campos adicionales por ahora, hereda de EquipoBase
+
 class JugadorBase(BaseModel):
     nombre: str = Field(..., example="Carlos Gómez")
     posicion: str = Field(..., example="Delantero")
@@ -61,3 +65,4 @@ class JugadorResponse(JugadorBase):
 
     class Config:
         from_attributes = True
+
