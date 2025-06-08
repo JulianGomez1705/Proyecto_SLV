@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Response
+from fafrom fastapi import FastAPI, Depends, HTTPException, status, Response
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware # Importar CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 
@@ -35,10 +35,15 @@ app.add_middleware(
 )
 
 
-# Servir archivos estáticos desde el directorio actual (donde está app_prueba.py)
-app.mount("/", StaticFiles(directory=".", html=True), name="static")
+# Servir archivos estáticos desde la NUEVA carpeta 'static'
+# Esto montará la carpeta 'static' en la raíz de la URL de tu aplicación.
+# Así, 'index.html' será accesible en '/' y 'jugadores.html' en '/jugadores.html'
+# ¡IMPORTANTE!: Esta línea debe ir DESPUÉS de todos sus endpoints de API
+# para que las rutas de API (como /equipos) tengan preferencia.
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
-@app.get("/api") # Cambiamos la ruta a /api para su mensaje de bienvenida
+# Redefinimos el endpoint /api para su mensaje de bienvenida
+@app.get("/api")
 async def read_root():
     return {"message": "¡Bienvenido a la API de Gestión Deportiva SLV! Accede a /docs para la documentación."}
 
@@ -209,5 +214,6 @@ def eliminar_jugador(jugador_id: int, sesion_bd: Session = Depends(obtener_sesio
     sesion_bd.delete(jugador)
     sesion_bd.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 
 
