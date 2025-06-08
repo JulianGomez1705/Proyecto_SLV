@@ -3,7 +3,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
-from starlette.responses import HTMLResponse
 
 from database.config import SessionLocal, engine, obtener_sesion_bd
 from database.models import Equipo_db, Jugador_db, Estadisticas_db, EstadoJugador_db, Base
@@ -28,13 +27,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.mount("/static", StaticFiles(directory="static", html=True), name="static")
-
-@app.get("/", response_class=HTMLResponse)
-async def serve_index():
-    with open("static/index.html", "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
 
 @app.get("/api")
 async def read_root():
@@ -207,5 +199,4 @@ def eliminar_jugador(jugador_id: int, sesion_bd: Session = Depends(obtener_sesio
     sesion_bd.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-
-
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
