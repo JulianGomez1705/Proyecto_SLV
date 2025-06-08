@@ -1,341 +1,211 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Jugadores - Proyecto Superliga Voleibol Bogota</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .text-custom-red {
-            color: #DA121A;
-        }
-        .border-custom-red {
-            border-color: #DA121A;
-        }
-        .bg-custom-red {
-            background-color: #DA121A;
-        }
-        .hover\:bg-custom-red-dark:hover {
-            background-color: #B40F15;
-        }
-        .text-custom-green {
-            color: #33CC66;
-        }
-        .border-custom-green {
-            border-color: #33CC66;
-        }
-        .bg-custom-green {
-            background-color: #33CC66;
-        }
-        .hover\:bg-custom-green-dark:hover {
-            background-color: #2CA354;
-        }
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #4a5568;
-        }
-        th {
-            background-color: #2d3748;
-            color: #e2e8f0;
-        }
-        tr:nth-child(even) {
-            background-color: #2d3748;
-        }
-        tr:nth-child(odd) {
-            background-color: #1a202c;
-        }
-        .overflow-x-auto {
-            overflow-x: auto;
-        }
-    </style>
-</head>
-<body class="bg-gradient-to-br from-[#DA121A] to-[#33CC66] min-h-screen flex flex-col items-center p-4">
-    <nav class="w-full max-w-5xl bg-gray-900 bg-opacity-90 rounded-xl shadow-lg p-4 mb-8 flex justify-center space-x-8 md:space-x-12 lg:space-x-16 z-10">
-        <a href="index.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Home</a>
-        <a href="jugadores.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Jugadores</a>
-        <a href="equipos.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Equipos</a>
-    </nav>
+from fastapi import FastAPI, Depends, HTTPException, status, Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware # Importar CORSMiddleware
+from sqlalchemy.orm import Session, joinedload
+from typing import List, Optional
 
-    <div class="bg-gray-800 rounded-xl shadow-2xl p-6 sm:p-8 lg:p-12 max-w-5xl w-full text-center border border-gray-700 text-gray-200">
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-custom-green mb-6">
-            Gestión de Jugadores
-        </h1>
-        <p class="text-lg sm:text-xl text-gray-300 mb-8">
-            Aquí puedes registrar nuevos jugadores y ver la lista completa de jugadores existentes.
-        </p>
+from database.config import SessionLocal, engine, obtener_sesion_bd
+from database.models import Equipo_db, Jugador_db, Estadisticas_db, EstadoJugador_db, Base
+from esquemas import EquipoCreate, EquipoResponse, JugadorCreate, JugadorResponse, EstadisticasBase, EstadisticasResponse, EstadoJugadorBase, EstadoJugadorResponse, EquipoForJugador
 
-        <div class="mb-12 p-6 bg-gray-900 rounded-lg border border-gray-700 shadow-md">
-            <h2 class="text-2xl font-semibold text-custom-red mb-4">Registrar Nuevo Jugador</h2>
-            <form id="registroJugadorForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                <div class="md:col-span-2 text-custom-green text-xl font-bold mb-2">Datos del Jugador</div>
-                <div>
-                    <label for="nombreJugador" class="block text-gray-400 text-sm font-bold mb-2">Nombre:</label>
-                    <input type="text" id="nombreJugador" name="nombre" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
-                </div>
-                <div>
-                    <label for="posicionJugador" class="block text-gray-400 text-sm font-bold mb-2">Posición:</label>
-                    <input type="text" id="posicionJugador" name="posicion" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
-                </div>
-                <div class="md:col-span-2">
-                    <label for="equipoIdJugador" class="block text-gray-400 text-sm font-bold mb-2">Equipo (ID):</label>
-                    <select id="equipoIdJugador" name="equipo_id" class="shadow border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700">
-                    </select>
-                </div>
+Base.metadata.create_all(bind=engine)
 
-                <div class="md:col-span-2 text-custom-red text-xl font-bold mt-6 mb-2">Estadísticas (Opcional)</div>
-                <div>
-                    <label for="puntosGenerales" class="block text-gray-400 text-sm font-bold mb-2">Puntos Generales:</label>
-                    <input type="number" id="puntosGenerales" name="puntosGenerales" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" value="0">
-                </div>
-                <div>
-                    <label for="puntosAtaque" class="block text-gray-400 text-sm font-bold mb-2">Puntos Ataque:</label>
-                    <input type="number" id="puntosAtaque" name="puntosAtaque" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" value="0">
-                </div>
-                <div>
-                    <label for="puntosBloqueo" class="block text-gray-400 text-sm font-bold mb-2">Puntos Bloqueo:</label>
-                    <input type="number" id="puntosBloqueo" name="puntosBloqueo" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" value="0">
-                </div>
-                <div>
-                    <label for="puntosSaque" class="block text-gray-400 text-sm font-bold mb-2">Puntos Saque:</label>
-                    <input type="number" id="puntosSaque" name="puntosSaque" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" value="0">
-                </div>
-                <div>
-                    <label for="recepcionesExitosas" class="block text-gray-400 text-sm font-bold mb-2">Recepciones Exitosas:</label>
-                    <input type="number" id="recepcionesExitosas" name="recepcionesExitosas" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" value="0">
-                </div>
-                <div>
-                    <label for="recepcionesErradas" class="block text-gray-400 text-sm font-bold mb-2">Recepciones Erradas:</label>
-                    <input type="number" id="recepcionesErradas" name="recepcionesErradas" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" value="0">
-                </div>
+app = FastAPI(
+    title="API de Gestión Deportiva SLV",
+    description="API RESTful para la gestión de jugadores, equipos, estadísticas y estado físico.",
+    version="1.0.0",
+)
 
-                <div class="md:col-span-2 text-custom-green text-xl font-bold mt-6 mb-2">Estado Físico (Opcional)</div>
-                <div>
-                    <label for="alturaCm" class="block text-gray-400 text-sm font-bold mb-2">Altura (cm):</label>
-                    <input type="number" step="0.1" id="alturaCm" name="alturaCm" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700">
-                </div>
-                <div>
-                    <label for="saltoBloqueoCm" class="block text-gray-400 text-sm font-bold mb-2">Salto Bloqueo (cm):</label>
-                    <input type="number" step="0.1" id="saltoBloqueoCm" name="saltoBloqueoCm" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700">
-                </div>
-                <div>
-                    <label for="saltoAtaqueCm" class="block text-gray-400 text-sm font-bold mb-2">Salto Ataque (cm):</label>
-                    <input type="number" step="0.1" id="saltoAtaqueCm" name="saltoAtaqueCm" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700">
-                </div>
-                <div class="md:col-span-2">
-                    <label for="lesion" class="block text-gray-400 text-sm font-bold mb-2">Lesión:</label>
-                    <input type="text" id="lesion" name="lesion" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700">
-                </div>
+# Configuración de CORS
+origins = [
+    "*", # Permite cualquier origen. En producción, deberías restringir esto a tu dominio.
+    # Por ejemplo, si tu frontend está en 'https://tudominio.onrender.com', lo pondrías aquí.
+    # "https://proyectosuperligadevoleibol-desarrollo.onrender.com",
+    # "http://localhost", # Para desarrollo local
+    # "http://localhost:8080",
+    # "http://127.0.0.1:8000",
+]
 
-                <div class="md:col-span-2 flex justify-center mt-6">
-                    <button type="submit" class="bg-custom-red hover:bg-custom-red-dark text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1">
-                        Registrar Jugador
-                    </button>
-                </div>
-            </form>
-            <div id="mensajeRegistro" class="mt-4 text-center text-sm font-semibold"></div>
-        </div>
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Permite todos los métodos (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"], # Permite todas las cabeceras
+)
 
-        <div class="p-6 bg-gray-900 rounded-lg border border-gray-700 shadow-md">
-            <h2 class="text-2xl font-semibold text-custom-red mb-4">Jugadores Existentes</h2>
-            <div class="overflow-x-auto rounded-lg">
-                <table class="min-w-full divide-y divide-gray-700">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Posición</th>
-                            <th>Equipo</th>
-                            <th>Altura</th>
-                            <th>Lesión</th>
-                            <th>Puntos Gen.</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="jugadoresTablaBody" class="divide-y divide-gray-800">
-                    </tbody>
-                </table>
-            </div>
-            <div id="mensajeLista" class="mt-4 text-center text-sm font-semibold"></div>
-        </div>
-    </div>
 
-    <script>
-        const API_BASE_URL = 'https://proyectosuperligadevoleibol-desarrollo.onrender.com';
+# Servir archivos estáticos desde el directorio actual (donde está app_prueba.py)
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
-        function mostrarMensaje(idElemento, mensaje, tipo = 'info') {
-            const elemento = document.getElementById(idElemento);
-            elemento.textContent = mensaje;
-            elemento.className = 'mt-4 text-center text-sm font-semibold ';
-            if (tipo === 'success') {
-                elemento.classList.add('text-green-500');
-            } else if (tipo === 'error') {
-                elemento.classList.add('text-red-500');
-            } else {
-                elemento.classList.add('text-blue-400');
-            }
-        }
+@app.get("/api") # Cambiamos la ruta a /api para su mensaje de bienvenida
+async def read_root():
+    return {"message": "¡Bienvenido a la API de Gestión Deportiva SLV! Accede a /docs para la documentación."}
 
-        async function loadEquiposForDropdown() {
-            const selectElement = document.getElementById('equipoIdJugador');
-            selectElement.innerHTML = '<option value="">Cargando equipos...</option>';
-            try {
-                const response = await fetch(`${API_BASE_URL}/equipos/`);
-                if (!response.ok) {
-                    throw new Error(`Error al cargar equipos: ${response.statusText}`);
-                }
-                const equipos = await response.json();
 
-                selectElement.innerHTML = '<option value="">Selecciona un equipo (Opcional)</option>';
-                equipos.forEach(equipo => {
-                    const option = document.createElement('option');
-                    option.value = equipo.id;
-                    option.textContent = `${equipo.nombre} (ID: ${equipo.id})`;
-                    selectElement.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error cargando equipos para el dropdown:', error);
-                mostrarMensaje('mensajeRegistro', 'Error al cargar los equipos. Intenta recargar la página.', 'error');
-                selectElement.innerHTML = '<option value="">Error al cargar equipos</option>';
-            }
-        }
+@app.post("/equipos/", response_model=EquipoResponse, status_code=status.HTTP_201_CREATED)
+def crear_equipo(equipo: EquipoCreate, db: Session = Depends(obtener_sesion_bd)):
+    db_equipo_existente = db.query(Equipo_db).filter(Equipo_db.nombre == equipo.nombre).first()
+    if db_equipo_existente:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ya existe un equipo con este nombre")
 
-        document.getElementById('registroJugadorForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            mostrarMensaje('mensajeRegistro', 'Registrando jugador...', 'info');
+    db_equipo = Equipo_db(
+        nombre=equipo.nombre,
+        ubicacion=equipo.ubicacion,
+        entrenador=equipo.entrenador
+    )
+    db.add(db_equipo)
+    db.commit()
+    db.refresh(db_equipo)
+    return db_equipo
 
-            const form = event.target;
-            const jugadorData = {
-                nombre: form.nombreJugador.value,
-                posicion: form.posicionJugador.value,
-                equipo_id: form.equipoIdJugador.value ? parseInt(form.equipoIdJugador.value) : null,
-                estadisticas: {},
-                estadoJugador: {}
-            };
+@app.get("/equipos/", response_model=List[EquipoResponse])
+def obtener_equipos(skip: int = 0, limit: int = 100, db: Session = Depends(obtener_sesion_bd)):
+    equipos = db.query(Equipo_db).options(joinedload(Equipo_db.jugadores)).offset(skip).limit(limit).all()
+    return equipos
 
-            jugadorData.estadisticas = {
-                puntosGenerales: parseInt(form.puntosGenerales.value) || 0,
-                puntosAtaque: parseInt(form.puntosAtaque.value) || 0,
-                puntosBloqueo: parseInt(form.puntosBloqueo.value) || 0,
-                puntosSaque: parseInt(form.puntosSaque.value) || 0,
-                recepcionesExitosas: parseInt(form.recepcionesExitosas.value) || 0,
-                recepcionesErradas: parseInt(form.recepcionesErradas.value) || 0,
-            };
+@app.get("/equipos/{equipo_id}", response_model=EquipoResponse)
+def obtener_equipo(equipo_id: int, db: Session = Depends(obtener_sesion_bd)):
+    equipo = db.query(Equipo_db).options(joinedload(Equipo_db.jugadores)).filter(Equipo_db.id == equipo_id).first()
+    if equipo is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipo no encontrado")
+    return equipo
 
-            if (form.alturaCm.value) jugadorData.estadoJugador.alturaCm = parseFloat(form.alturaCm.value);
-            if (form.saltoBloqueoCm.value) jugadorData.estadoJugador.saltoBloqueoCm = parseFloat(form.saltoBloqueoCm.value);
-            if (form.saltoAtaqueCm.value) jugadorData.estadoJugador.saltoAtaqueCm = parseFloat(form.saltoAtaqueCm.value);
-            if (form.lesion.value) jugadorData.estadoJugador.lesion = form.lesion.value;
+@app.put("/equipos/{equipo_id}", response_model=EquipoResponse)
+def actualizar_equipo(equipo_id: int, equipo: EquipoCreate, db: Session = Depends(obtener_sesion_bd)):
+    db_equipo = db.query(Equipo_db).filter(Equipo_db.id == equipo_id).first()
+    if db_equipo is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipo no encontrado")
 
-            if (Object.keys(jugadorData.estadisticas).every(key => jugadorData.estadisticas[key] === 0 || jugadorData.estadisticas[key] === null)) {
-                delete jugadorData.estadisticas;
-            }
-            if (Object.keys(jugadorData.estadoJugador).length === 0) {
-                delete jugadorData.estadoJugador;
-            }
+    db_equipo.nombre = equipo.nombre
+    db_equipo.ubicacion = equipo.ubicacion
+    db_equipo.entrenador = equipo.entrenador
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/jugadores/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(jugadorData),
-                });
+    db.commit()
+    db.refresh(db_equipo)
+    return db_equipo
 
-                const data = await response.json();
+@app.delete("/equipos/{equipo_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_equipo(equipo_id: int, db: Session = Depends(obtener_sesion_bd)):
+    db_equipo = db.query(Equipo_db).filter(Equipo_db.id == equipo_id).first()
+    if db_equipo is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipo no encontrado")
 
-                if (response.ok) {
-                    mostrarMensaje('mensajeRegistro', `Jugador ${data.nombre} registrado con éxito (ID: ${data.id})`, 'success');
-                    form.reset();
-                    fetchJugadores();
-                } else {
-                    mostrarMensaje('mensajeRegistro', `Error al registrar jugador: ${data.detail || JSON.stringify(data)}`, 'error');
-                }
-            } catch (error) {
-                console.error('Error al enviar el formulario:', error);
-                mostrarMensaje('mensajeRegistro', `Error de conexión: ${error.message}`, 'error');
-            }
-        });
+    db.delete(db_equipo)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-        async function fetchJugadores() {
-            const tablaBody = document.getElementById('jugadoresTablaBody');
-            tablaBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-400">Cargando jugadores...</td></tr>';
-            mostrarMensaje('mensajeLista', '', 'info');
+@app.post("/jugadores/", response_model=JugadorResponse, status_code=status.HTTP_201_CREATED)
+def crear_jugador(datos_jugador: JugadorCreate, sesion_bd: Session = Depends(obtener_sesion_bd)):
+    if datos_jugador.equipo_id:
+        equipo_bd = sesion_bd.query(Equipo_db).filter(Equipo_db.id == datos_jugador.equipo_id).first()
+        if not equipo_bd:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipo no encontrado")
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/jugadores/`);
-                if (!response.ok) {
-                    throw new Error(`Error al obtener jugadores: ${response.statusText}`);
-                }
-                const jugadores = await response.json();
+    nuevo_jugador_bd = Jugador_db(
+        nombre=datos_jugador.nombre,
+        posicion=datos_jugador.posicion,
+        equipo_id=datos_jugador.equipo_id
+    )
 
-                if (jugadores.length === 0) {
-                    tablaBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-400">No hay jugadores registrados.</td></tr>';
-                    mostrarMensaje('mensajeLista', 'Crea un jugador usando el formulario de arriba.', 'info');
-                    return;
-                }
+    if datos_jugador.estadisticas:
+        estadisticas_bd = Estadisticas_db(**datos_jugador.estadisticas.model_dump())
+        nuevo_jugador_bd.estadisticas = estadisticas_bd
 
-                tablaBody.innerHTML = '';
-                jugadores.forEach(jugador => {
-                    const row = tablaBody.insertRow();
-                    row.className = 'text-gray-300';
-                    row.insertCell().textContent = jugador.id;
-                    row.insertCell().textContent = jugador.nombre;
-                    row.insertCell().textContent = jugador.posicion;
-                    row.insertCell().textContent = jugador.equipo ? `${jugador.equipo.nombre} (ID: ${jugador.equipo.id})` : 'N/A';
-                    row.insertCell().textContent = jugador.estadoJugador ? `${jugador.estadoJugador.alturaCm || 'N/A'} cm` : 'N/A';
-                    row.insertCell().textContent = jugador.estadoJugador ? (jugador.estadoJugador.lesion || 'Ninguna') : 'Ninguna';
-                    row.insertCell().textContent = jugador.estadisticas ? (jugador.estadisticas.puntosGenerales || 0) : 0;
+    if datos_jugador.estadoJugador:
+        estado_jugador_bd = EstadoJugador_db(**datos_jugador.estadoJugador.model_dump())
+        nuevo_jugador_bd.estadoJugador = estado_jugador_bd
 
-                    const accionesCell = row.insertCell();
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Eliminar';
-                    deleteButton.className = 'bg-custom-red hover:bg-custom-red-dark text-white text-xs font-bold py-1 px-2 rounded-full transition-all duration-200';
-                    deleteButton.onclick = () => handleDeleteJugador(jugador.id, jugador.nombre);
-                    accionesCell.appendChild(deleteButton);
-                });
-                mostrarMensaje('mensajeLista', `Se cargaron ${jugadores.length} jugadores.`, 'success');
+    sesion_bd.add(nuevo_jugador_bd)
+    sesion_bd.commit()
+    sesion_bd.refresh(nuevo_jugador_bd)
 
-            } catch (error) {
-                console.error('Error al obtener jugadores:', error);
-                mostrarMensaje('mensajeLista', `Error al cargar la lista de jugadores: ${error.message}`, 'error');
-                tablaBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">Error al cargar jugadores.</td></tr>';
-            }
-        }
+    nuevo_jugador_bd = sesion_bd.query(Jugador_db).options(
+        joinedload(Jugador_db.equipo),
+        joinedload(Jugador_db.estadisticas),
+        joinedload(Jugador_db.estadoJugador)
+    ).filter(Jugador_db.id == nuevo_jugador_bd.id).first()
 
-        async function handleDeleteJugador(jugadorId, jugadorNombre) {
-            if (confirm(`¿Estás seguro de que quieres eliminar a ${jugadorNombre} (ID: ${jugadorId})?`)) {
-                mostrarMensaje('mensajeLista', `Eliminando jugador ${jugadorNombre}...`, 'info');
-                try {
-                    const response = await fetch(`${API_BASE_URL}/jugadores/${jugadorId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    });
+    return nuevo_jugador_bd
 
-                    if (response.status === 204) {
-                        mostrarMensaje('mensajeLista', `Jugador ${jugadorNombre} eliminado con éxito.`, 'success');
-                        fetchJugadores();
-                    } else {
-                        const errorData = await response.json();
-                        mostrarMensaje('mensajeLista', `Error al eliminar jugador: ${errorData.detail || 'Error desconocido'}`, 'error');
-                    }
-                } catch (error) {
-                    console.error('Error al eliminar jugador:', error);
-                    mostrarMensaje('mensajeLista', `Error de conexión al eliminar: ${error.message}`, 'error');
-                }
-            }
-        }
+@app.get("/jugadores/", response_model=List[JugadorResponse], status_code=status.HTTP_200_OK)
+def obtener_jugadores(
+    sesion_bd: Session = Depends(obtener_sesion_bd),
+    skip: int = 0,
+    limit: int = 100
+):
+    jugadores = sesion_bd.query(Jugador_db).options(
+        joinedload(Jugador_db.equipo),
+        joinedload(Jugador_db.estadisticas),
+        joinedload(Jugador_db.estadoJugador)
+    ).offset(skip).limit(limit).all()
+    return jugadores
 
-        window.onload = () => {
-            loadEquiposForDropdown();
-            fetchJugadores();
-        };
-    </script>
-</body>
-</html>
+@app.get("/jugadores/{jugador_id}", response_model=JugadorResponse, status_code=status.HTTP_200_OK)
+def obtener_jugador_por_id(jugador_id: int, sesion_bd: Session = Depends(obtener_sesion_bd)):
+    jugador = sesion_bd.query(Jugador_db).options(
+        joinedload(Jugador_db.equipo),
+        joinedload(Jugador_db.estadisticas),
+        joinedload(Jugador_db.estadoJugador)
+    ).filter(Jugador_db.id == jugador_id).first()
+
+    if not jugador:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Jugador no encontrado")
+    return jugador
+
+@app.put("/jugadores/{jugador_id}", response_model=JugadorResponse, status_code=status.HTTP_200_OK)
+def actualizar_jugador(jugador_id: int, datos_actualizacion: JugadorCreate, sesion_bd: Session = Depends(obtener_sesion_bd)):
+    jugador_existente = sesion_bd.query(Jugador_db).options(
+        joinedload(Jugador_db.estadisticas),
+        joinedload(Jugador_db.estadoJugador)
+    ).filter(Jugador_db.id == jugador_id).first()
+
+    if not jugador_existente:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Jugador no encontrado")
+
+    if datos_actualizacion.equipo_id is not None:
+        equipo_bd = sesion_bd.query(Equipo_db).filter(Equipo_db.id == datos_actualizacion.equipo_id).first()
+        if not equipo_bd:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipo no encontrado")
+
+    for campo, valor in datos_actualizacion.model_dump(exclude_unset=True, exclude={'estadisticas', 'estadoJugador'}).items():
+        setattr(jugador_existente, campo, valor)
+
+    if datos_actualizacion.estadisticas:
+        if jugador_existente.estadisticas:
+            for campo, valor in datos_actualizacion.estadisticas.model_dump(exclude_unset=True).items():
+                setattr(jugador_existente.estadisticas, campo, valor)
+        else:
+            estadisticas_bd = Estadisticas_db(**datos_actualizacion.estadisticas.model_dump())
+            jugador_existente.estadisticas = estadisticas_bd
+
+    if datos_actualizacion.estadoJugador:
+        if jugador_existente.estadoJugador:
+            for campo, valor in datos_actualizacion.estadoJugador.model_dump(exclude_unset=True).items():
+                setattr(jugador_existente.estadoJugador, campo, valor)
+        else:
+            estado_jugador_bd = EstadoJugador_db(**datos_actualizacion.estadoJugador.model_dump())
+            jugador_existente.estadoJugador = estado_jugador_bd
+
+    sesion_bd.add(jugador_existente)
+    sesion_bd.commit()
+    sesion_bd.refresh(jugador_existente)
+
+    jugador_existente = sesion_bd.query(Jugador_db).options(
+        joinedload(Jugador_db.equipo),
+        joinedload(Jugador_db.estadisticas),
+        joinedload(Jugador_db.estadoJugador)
+    ).filter(Jugador_db.id == jugador_id).first()
+
+    return jugador_existente
+
+@app.delete("/jugadores/{jugador_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_jugador(jugador_id: int, sesion_bd: Session = Depends(obtener_sesion_bd)):
+    jugador = sesion_bd.query(Jugador_db).filter(Jugador_db.id == jugador_id).first()
+
+    if not jugador:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Jugador no encontrado")
+
+    sesion_bd.delete(jugador)
+    sesion_bd.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
