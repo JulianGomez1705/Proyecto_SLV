@@ -9,6 +9,9 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
+# 'Base' ya NO se define aquí. Se definirá en database/models.py
+
 def obtener_sesion_bd():
     db = SessionLocal()
     try:

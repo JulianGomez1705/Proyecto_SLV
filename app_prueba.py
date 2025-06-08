@@ -2,9 +2,9 @@ from fastapi import FastAPI, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 
-from database.config import SessionLocal, engine, Base, obtener_sesion_bd
-from database.models import Equipo_db, Jugador_db, Estadisticas_db, EstadoJugador_db
-from esquemas import EquipoBase, EquipoResponse, JugadorCreate, JugadorResponse, EstadisticasBase, EstadisticasResponse, EstadoJugadorBase, EstadoJugadorResponse, EquipoForJugador
+from database.config import SessionLocal, engine, obtener_sesion_bd
+from database.models import Equipo_db, Jugador_db, Estadisticas_db, EstadoJugador_db, Base
+from esquemas import EquipoCreate, EquipoResponse, JugadorCreate, JugadorResponse, EstadisticasBase, EstadisticasResponse, EstadoJugadorBase, EstadoJugadorResponse, EquipoForJugador
 
 Base.metadata.create_all(bind=engine)
 
@@ -19,7 +19,7 @@ async def read_root():
     return {"message": "¡Bienvenido a la API de Gestión Deportiva SLV! Accede a /docs para la documentación."}
 
 @app.post("/equipos/", response_model=EquipoResponse, status_code=status.HTTP_201_CREATED)
-def crear_equipo(equipo: EquipoBase, db: Session = Depends(obtener_sesion_bd)):
+def crear_equipo(equipo: EquipoCreate, db: Session = Depends(obtener_sesion_bd)):
     db_equipo_existente = db.query(Equipo_db).filter(Equipo_db.nombre == equipo.nombre).first()
     if db_equipo_existente:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ya existe un equipo con este nombre")
@@ -164,7 +164,7 @@ def actualizar_jugador(jugador_id: int, datos_actualizacion: JugadorCreate, sesi
 
     sesion_bd.add(jugador_existente)
     sesion_bd.commit()
-    sesion_bd.refresh(jugador_existente)
+    sesion_bd.refresh(jugador_existente) # Refresh the existing object, not a new_jugador_bd
 
     jugador_existente = sesion_bd.query(Jugador_db).options(
         joinedload(Jugador_db.equipo),
