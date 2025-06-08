@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Superliga Voleibol Bogota</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fuente Inter para una apariencia moderna y legible */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Colores personalizados usando los códigos hexadecimales exactos */
+        .text-custom-red {
+            color: #DA121A;
+        }
+        .border-custom-red {
+            border-color: #DA121A;
+        }
+        .bg-custom-red {
+            background-color: #DA121A;
+        }
+        .hover\:bg-custom-red-dark:hover {
+            background-color: #B40F15;
+        }
+        .text-custom-green {
+            color: #33CC66;
+        }
+        .border-custom-green {
+            border-color: #33CC66;
+        }
+        .bg-custom-green {
+            background-color: #33CC66;
+        }
+        .hover\:bg-custom-green-dark:hover {
+            background-color: #2CA354;
+        }
+    </style>
+</head>
+<!-- Fondo con degradado de los dos colores principales, invertidos -->
+<body class="bg-gradient-to-br from-[#DA121A] to-[#33CC66] min-h-screen flex flex-col items-center justify-center p-4">
+    <!-- Menú de Navegación -->
+    <nav class="w-full max-w-5xl bg-gray-900 bg-opacity-90 rounded-xl shadow-lg p-4 mb-8 flex justify-center space-x-8 md:space-x-12 lg:space-x-16 z-10">
+        <a href="index.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Home</a>
+        <a href="jugadores.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Jugadores</a>
+        <a href="equipos.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Equipos</a>
+    </nav>
+
+    <!-- Contenedor principal - fondo oscuro para contraste con el degradado -->
+    <div class="bg-gray-800 rounded-xl shadow-2xl p-6 sm:p-8 lg:p-12 max-w-4xl w-full text-center transform hover:scale-105 transition-transform duration-300 border border-gray-700">
+        <!-- Encabezado con verde personalizado para la primera parte y rojo para "Bogota" -->
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-custom-green mb-4">
+            Proyecto Superliga Voleibol <span class="text-custom-red">Bogota</span>
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-300 mb-8">
+            Esta pagina fue diseñada y desarrollada para la materia desarrollo de software baja la guía y ayuda del profesor Sergio Iván Galvis Motoa (sigmotoa) y me inspire en mi amor por este gran deporte lleno de detalles que muy pocos notan y aprovechado su buen nivel de crecimiento y exposición en los últimos años creo que este proyecto puede tener un impacto positivo e interesante para los fanáticos del deporte y los nuevos seguidores.
+        </p>
+
+        <!-- Aquí se eliminaron las tarjetas de "Equipos" y "Jugadores" -->
+
+    </div>
+</body>
+</html>
