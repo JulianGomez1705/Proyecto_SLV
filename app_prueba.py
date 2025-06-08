@@ -1,4 +1,4 @@
-from fafrom fastapi import FastAPI, Depends, HTTPException, status, Response
+from fastapi import FastAPI, Depends, HTTPException, status, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
@@ -18,10 +18,9 @@ app = FastAPI(
 
 # Configuración de CORS
 origins = [
-    "*", # Permite cualquier origen. En producción, deberías restringir esto a tu dominio.
-    # Por ejemplo, si tu frontend está en 'https://tudominio.onrender.com', lo pondrías aquí.
+    "*",
     # "https://proyectosuperligadevoleibol-desarrollo.onrender.com",
-    # "http://localhost", # Para desarrollo local
+    # "http://localhost",
     # "http://localhost:8080",
     # "http://127.0.0.1:8000",
 ]
@@ -30,23 +29,17 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"], # Permite todos los métodos (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"], # Permite todas las cabeceras
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-
 # Servir archivos estáticos desde la NUEVA carpeta 'static'
-# Esto montará la carpeta 'static' en la raíz de la URL de tu aplicación.
-# Así, 'index.html' será accesible en '/' y 'jugadores.html' en '/jugadores.html'
-# ¡IMPORTANTE!: Esta línea debe ir DESPUÉS de todos sus endpoints de API
-# para que las rutas de API (como /equipos) tengan preferencia.
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 # Redefinimos el endpoint /api para su mensaje de bienvenida
 @app.get("/api")
 async def read_root():
     return {"message": "¡Bienvenido a la API de Gestión Deportiva SLV! Accede a /docs para la documentación."}
-
 
 @app.post("/equipos/", response_model=EquipoResponse, status_code=status.HTTP_201_CREATED)
 def crear_equipo(equipo: EquipoCreate, db: Session = Depends(obtener_sesion_bd)):
@@ -214,6 +207,7 @@ def eliminar_jugador(jugador_id: int, sesion_bd: Session = Depends(obtener_sesio
     sesion_bd.delete(jugador)
     sesion_bd.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 
 
 
