@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
+from starlette.responses import HTMLResponse
 
 from database.config import SessionLocal, engine, obtener_sesion_bd
 from database.models import Equipo_db, Jugador_db, Estadisticas_db, EstadoJugador_db, Base
@@ -16,13 +17,8 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Configuración de CORS
 origins = [
     "*",
-    # "https://proyectosuperligadevoleibol-desarrollo.onrender.com",
-    # "http://localhost",
-    # "http://localhost:8080",
-    # "http://127.0.0.1:8000",
 ]
 
 app.add_middleware(
@@ -33,10 +29,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Servir archivos estáticos desde la NUEVA carpeta 'static'
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
-# Redefinimos el endpoint /api para su mensaje de bienvenida
+@app.get("/", response_class=HTMLResponse)
+async def serve_index():
+    with open("static/index.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
 @app.get("/api")
 async def read_root():
     return {"message": "¡Bienvenido a la API de Gestión Deportiva SLV! Accede a /docs para la documentación."}
@@ -207,7 +206,6 @@ def eliminar_jugador(jugador_id: int, sesion_bd: Session = Depends(obtener_sesio
     sesion_bd.delete(jugador)
     sesion_bd.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
 
 
 
