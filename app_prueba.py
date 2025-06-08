@@ -200,3 +200,4 @@ def eliminar_jugador(jugador_id: int, sesion_bd: Session = Depends(obtener_sesio
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
