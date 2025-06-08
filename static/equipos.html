@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Equipos - Proyecto Superliga Voleibol Bogota</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .text-custom-red {
+            color: #DA121A;
+        }
+        .border-custom-red {
+            border-color: #DA121A;
+        }
+        .bg-custom-red {
+            background-color: #DA121A;
+        }
+        .hover\:bg-custom-red-dark:hover {
+            background-color: #B40F15;
+        }
+        .text-custom-green {
+            color: #33CC66;
+        }
+        .border-custom-green {
+            border-color: #33CC66;
+        }
+        .bg-custom-green {
+            background-color: #33CC66;
+        }
+        .hover\:bg-custom-green-dark:hover {
+            background-color: #2CA354;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #4a5568;
+        }
+        th {
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+        tr:nth-child(even) {
+            background-color: #2d3748;
+        }
+        tr:nth-child(odd) {
+            background-color: #1a202c;
+        }
+        .overflow-x-auto {
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#DA121A] to-[#33CC66] min-h-screen flex flex-col items-center p-4">
+    <nav class="w-full max-w-5xl bg-gray-900 bg-opacity-90 rounded-xl shadow-lg p-4 mb-8 flex justify-center space-x-8 md:space-x-12 lg:space-x-16 z-10">
+        <a href="index.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Home</a>
+        <a href="jugadores.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Jugadores</a>
+        <a href="equipos.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Equipos</a>
+    </nav>
+
+    <div class="bg-gray-800 rounded-xl shadow-2xl p-6 sm:p-8 lg:p-12 max-w-5xl w-full text-center border border-gray-700 text-gray-200">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-custom-green mb-6">
+            Gestión de Equipos
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-300 mb-8">
+            Aquí puedes registrar nuevos equipos y ver la lista completa de equipos existentes.
+        </p>
+
+        <div class="mb-12 p-6 bg-gray-900 rounded-lg border border-gray-700 shadow-md">
+            <h2 class="text-2xl font-semibold text-custom-red mb-4">Registrar Nuevo Equipo</h2>
+            <form id="registroEquipoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                <div>
+                    <label for="nombreEquipo" class="block text-gray-400 text-sm font-bold mb-2">Nombre del Equipo:</label>
+                    <input type="text" id="nombreEquipo" name="nombre" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
+                </div>
+                <div>
+                    <label for="ubicacionEquipo" class="block text-gray-400 text-sm font-bold mb-2">Ubicación:</label>
+                    <input type="text" id="ubicacionEquipo" name="ubicacion" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="entrenadorEquipo" class="block text-gray-400 text-sm font-bold mb-2">Entrenador:</label>
+                    <input type="text" id="entrenadorEquipo" name="entrenador" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
+                </div>
+                <div class="md:col-span-2 flex justify-center mt-6">
+                    <button type="submit" class="bg-custom-red hover:bg-custom-red-dark text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1">
+                        Registrar Equipo
+                    </button>
+                </div>
+            </form>
+            <div id="mensajeRegistro" class="mt-4 text-center text-sm font-semibold"></div>
+        </div>
+
+        <div class="p-6 bg-gray-900 rounded-lg border border-gray-700 shadow-md">
+            <h2 class="text-2xl font-semibold text-custom-red mb-4">Equipos Existentes</h2>
+            <div class="overflow-x-auto rounded-lg">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Ubicación</th>
+                            <th>Entrenador</th>
+                            <th>Jugadores (Total)</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equiposTablaBody" class="divide-y divide-gray-800">
+                    </tbody>
+                </table>
+            </div>
+            <div id="mensajeLista" class="mt-4 text-center text-sm font-semibold"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://proyectosuperligadevoleibol-desarrollo.onrender.com';
+
+        function mostrarMensaje(idElemento, mensaje, tipo = 'info') {
+            const elemento = document.getElementById(idElemento);
+            elemento.textContent = mensaje;
+            elemento.className = 'mt-4 text-center text-sm font-semibold ';
+            if (tipo === 'success') {
+                elemento.classList.add('text-green-500');
+            } else if (tipo === 'error') {
+                elemento.classList.add('text-red-500');
+            } else {
+                elemento.classList.add('text-blue-400');
+            }
+        }
+
+        document.getElementById('registroEquipoForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            mostrarMensaje('mensajeRegistro', 'Registrando equipo...', 'info');
+
+            const form = event.target;
+            const equipoData = {
+                nombre: form.nombreEquipo.value,
+                ubicacion: form.ubicacionEquipo.value,
+                entrenador: form.entrenadorEquipo.value,
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/equipos/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(equipoData),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    mostrarMensaje('mensajeRegistro', `Equipo ${data.nombre} registrado con éxito (ID: ${data.id})`, 'success');
+                    form.reset();
+                    fetchEquipos();
+                } else {
+                    mostrarMensaje('mensajeRegistro', `Error al registrar equipo: ${data.detail || JSON.stringify(data)}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error al enviar el formulario:', error);
+                mostrarMensaje('mensajeRegistro', `Error de conexión: ${error.message}`, 'error');
+            }
+        });
+
+        async function fetchEquipos() {
+            const tablaBody = document.getElementById('equiposTablaBody');
+            tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Cargando equipos...</td></tr>';
+            mostrarMensaje('mensajeLista', '', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/equipos/`);
+                if (!response.ok) {
+                    throw new Error(`Error al obtener equipos: ${response.statusText}`);
+                }
+                const equipos = await response.json();
+
+                if (equipos.length === 0) {
+                    tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">No hay equipos registrados.</td></tr>';
+                    mostrarMensaje('mensajeLista', 'Crea un equipo usando el formulario de arriba.', 'info');
+                    return;
+                }
+
+                tablaBody.innerHTML = '';
+                equipos.forEach(equipo => {
+                    const row = tablaBody.insertRow();
+                    row.className = 'text-gray-300';
+                    row.insertCell().textContent = equipo.id;
+                    row.insertCell().textContent = equipo.nombre;
+                    row.insertCell().textContent = equipo.ubicacion;
+                    row.insertCell().textContent = equipo.entrenador;
+                    row.insertCell().textContent = equipo.jugadores ? equipo.jugadores.length : 0;
+
+                    const accionesCell = row.insertCell();
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Eliminar';
+                    deleteButton.className = 'bg-custom-red hover:bg-custom-red-dark text-white text-xs font-bold py-1 px-2 rounded-full transition-all duration-200';
+                    deleteButton.onclick = () => handleDeleteEquipo(equipo.id, equipo.nombre);
+                    accionesCell.appendChild(deleteButton);
+                });
+                mostrarMensaje('mensajeLista', `Se cargaron ${equipos.length} equipos.`, 'success');
+
+            } catch (error) {
+                console.error('Error al obtener equipos:', error);
+                mostrarMensaje('mensajeLista', `Error al cargar la lista de equipos: ${error.message}`, 'error');
+                tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-500">Error al cargar equipos.</td></tr>';
+            }
+        }
+
+        async function handleDeleteEquipo(equipoId, equipoNombre) {
+            if (confirm(`¿Estás seguro de que quieres eliminar al equipo ${equipoNombre} (ID: ${equipoId})? Esto también eliminará a todos sus jugadores asociados.`)) {
+                mostrarMensaje('mensajeLista', `Eliminando equipo ${equipoNombre}...`, 'info');
+                try {
+                    const response = await fetch(`${API_BASE_URL}/equipos/${equipoId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    if (response.status === 204) {
+                        mostrarMensaje('mensajeLista', `Equipo ${equipoNombre} eliminado con éxito.`, 'success');
+                        fetchEquipos();
+                    } else {
+                        const errorData = await response.json();
+                        mostrarMensaje('mensajeLista', `Error al eliminar equipo: ${errorData.detail || 'Error desconocido'}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error al eliminar equipo:', error);
+                    mostrarMensaje('mensajeLista', `Error de conexión al eliminar: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        window.onload = fetchEquipos;
+    </script>
+</body>
+</html>
