@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from database.config import SessionLocal, engine, obtener_sesion_bd
 from database.models import Equipo_db, Jugador_db, Estadisticas_db, EstadoJugador_db, Base
+# Asegurarse de que EquipoCreate esté importado, no EquipoBase directamente para los inputs.
 from esquemas import EquipoCreate, EquipoResponse, JugadorCreate, JugadorResponse, EstadisticasBase, EstadisticasResponse, EstadoJugadorBase, EstadoJugadorResponse, EquipoForJugador
 
 Base.metadata.create_all(bind=engine)
@@ -18,6 +19,7 @@ app = FastAPI(
 async def read_root():
     return {"message": "¡Bienvenido a la API de Gestión Deportiva SLV! Accede a /docs para la documentación."}
 
+# Cambiado el tipo de entrada de 'equipo: EquipoBase' a 'equipo: EquipoCreate'
 @app.post("/equipos/", response_model=EquipoResponse, status_code=status.HTTP_201_CREATED)
 def crear_equipo(equipo: EquipoCreate, db: Session = Depends(obtener_sesion_bd)):
     db_equipo_existente = db.query(Equipo_db).filter(Equipo_db.nombre == equipo.nombre).first()
@@ -46,8 +48,9 @@ def obtener_equipo(equipo_id: int, db: Session = Depends(obtener_sesion_bd)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipo no encontrado")
     return equipo
 
+# Cambiado el tipo de entrada de 'equipo: EquipoBase' a 'equipo: EquipoCreate'
 @app.put("/equipos/{equipo_id}", response_model=EquipoResponse)
-def actualizar_equipo(equipo_id: int, equipo: EquipoBase, db: Session = Depends(obtener_sesion_bd)):
+def actualizar_equipo(equipo_id: int, equipo: EquipoCreate, db: Session = Depends(obtener_sesion_bd)):
     db_equipo = db.query(Equipo_db).filter(Equipo_db.id == equipo_id).first()
     if db_equipo is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipo no encontrado")
@@ -164,7 +167,7 @@ def actualizar_jugador(jugador_id: int, datos_actualizacion: JugadorCreate, sesi
 
     sesion_bd.add(jugador_existente)
     sesion_bd.commit()
-    sesion_bd.refresh(jugador_existente) # Refresh the existing object, not a new_jugador_bd
+    sesion_bd.refresh(jugador_existente)
 
     jugador_existente = sesion_bd.query(Jugador_db).options(
         joinedload(Jugador_db.equipo),
@@ -184,3 +187,4 @@ def eliminar_jugador(jugador_id: int, sesion_bd: Session = Depends(obtener_sesio
     sesion_bd.delete(jugador)
     sesion_bd.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
