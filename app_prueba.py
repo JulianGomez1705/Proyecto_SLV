@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Response
+from fastapi.staticfiles import StaticFiles # Importar StaticFiles
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 
 from database.config import SessionLocal, engine, obtener_sesion_bd
 from database.models import Equipo_db, Jugador_db, Estadisticas_db, EstadoJugador_db, Base
-# Asegurarse de que EquipoCreate esté importado, no EquipoBase directamente para los inputs.
 from esquemas import EquipoCreate, EquipoResponse, JugadorCreate, JugadorResponse, EstadisticasBase, EstadisticasResponse, EstadoJugadorBase, EstadoJugadorResponse, EquipoForJugador
 
 Base.metadata.create_all(bind=engine)
@@ -15,11 +15,21 @@ app = FastAPI(
     version="1.0.0",
 )
 
-@app.get("/")
+# Servir archivos estáticos desde el directorio actual (donde está app_prueba.py)
+# El name="static" es arbitrario pero útil para referenciarlo si es necesario
+# ¡IMPORTANTE!: Esta línea debe ir DESPUÉS de todos sus endpoints de API
+# Si la pones antes, podría "capturar" rutas que deberían ir a tus endpoints.
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
+
+# Redefinimos el endpoint raíz para que no entre en conflicto con StaticFiles
+# Si StaticFiles tiene html=True y el directorio tiene index.html,
+# ya servirá index.html por defecto en la raíz.
+# Podemos mantener este para que la ruta /docs siga funcionando bien.
+@app.get("/api") # Cambiamos la ruta a /api para su mensaje de bienvenida
 async def read_root():
     return {"message": "¡Bienvenido a la API de Gestión Deportiva SLV! Accede a /docs para la documentación."}
 
-# Cambiado el tipo de entrada de 'equipo: EquipoBase' a 'equipo: EquipoCreate'
+
 @app.post("/equipos/", response_model=EquipoResponse, status_code=status.HTTP_201_CREATED)
 def crear_equipo(equipo: EquipoCreate, db: Session = Depends(obtener_sesion_bd)):
     db_equipo_existente = db.query(Equipo_db).filter(Equipo_db.nombre == equipo.nombre).first()
@@ -48,7 +58,6 @@ def obtener_equipo(equipo_id: int, db: Session = Depends(obtener_sesion_bd)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipo no encontrado")
     return equipo
 
-# Cambiado el tipo de entrada de 'equipo: EquipoBase' a 'equipo: EquipoCreate'
 @app.put("/equipos/{equipo_id}", response_model=EquipoResponse)
 def actualizar_equipo(equipo_id: int, equipo: EquipoCreate, db: Session = Depends(obtener_sesion_bd)):
     db_equipo = db.query(Equipo_db).filter(Equipo_db.id == equipo_id).first()
@@ -187,4 +196,5 @@ def eliminar_jugador(jugador_id: int, sesion_bd: Session = Depends(obtener_sesio
     sesion_bd.delete(jugador)
     sesion_bd.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 
