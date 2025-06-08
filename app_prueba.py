@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Response
-from fastapi.staticfiles import StaticFiles # Importar StaticFiles
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware # Importar CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 
@@ -15,16 +16,28 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Configuración de CORS
+origins = [
+    "*", # Permite cualquier origen. En producción, deberías restringir esto a tu dominio.
+    # Por ejemplo, si tu frontend está en 'https://tudominio.onrender.com', lo pondrías aquí.
+    # "https://proyectosuperligadevoleibol-desarrollo.onrender.com",
+    # "http://localhost", # Para desarrollo local
+    # "http://localhost:8080",
+    # "http://127.0.0.1:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Permite todos los métodos (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"], # Permite todas las cabeceras
+)
+
+
 # Servir archivos estáticos desde el directorio actual (donde está app_prueba.py)
-# El name="static" es arbitrario pero útil para referenciarlo si es necesario
-# ¡IMPORTANTE!: Esta línea debe ir DESPUÉS de todos sus endpoints de API
-# Si la pones antes, podría "capturar" rutas que deberían ir a tus endpoints.
 app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
-# Redefinimos el endpoint raíz para que no entre en conflicto con StaticFiles
-# Si StaticFiles tiene html=True y el directorio tiene index.html,
-# ya servirá index.html por defecto en la raíz.
-# Podemos mantener este para que la ruta /docs siga funcionando bien.
 @app.get("/api") # Cambiamos la ruta a /api para su mensaje de bienvenida
 async def read_root():
     return {"message": "¡Bienvenido a la API de Gestión Deportiva SLV! Accede a /docs para la documentación."}
