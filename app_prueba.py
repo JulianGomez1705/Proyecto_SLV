@@ -31,7 +31,8 @@ def crear_equipo(datos_equipo: EquipoCreate, sesion_bd: Session = Depends(obtene
     nuevo_equipo_bd = Equipo_db(
         nombre=datos_equipo.nombre,
         ubicacion=datos_equipo.ubicacion,
-        entrenador=datos_equipo.entrenador
+        entrenador=datos_equipo.entrenador,
+        imagen_url=datos_equipo.imagen_url  # Nuevo campo para la URL de la imagen del equipo
     )
     sesion_bd.add(nuevo_equipo_bd)
     sesion_bd.commit()
@@ -41,9 +42,8 @@ def crear_equipo(datos_equipo: EquipoCreate, sesion_bd: Session = Depends(obtene
 
 @app.get("/equipos/", response_model=List[EquipoResponse])
 def obtener_equipos(saltar: int = 0, limite: int = 100, sesion_bd: Session = Depends(obtener_sesion_bd)):
-    lista_equipos = sesion_bd.query(Equipo_db).options(joinedload(Equipo_db.jugadores)).offset(saltar).limit(
-        limite).all()
-    return lista_equipos
+    equipos = sesion_bd.query(Equipo_db).options(joinedload(Equipo_db.jugadores)).offset(saltar).limit(limite).all()
+    return equipos
 
 
 @app.get("/equipos/{id_equipo}", response_model=EquipoResponse)
@@ -64,6 +64,7 @@ def actualizar_equipo(id_equipo: int, datos_equipo: EquipoCreate, sesion_bd: Ses
     equipo_bd.nombre = datos_equipo.nombre
     equipo_bd.ubicacion = datos_equipo.ubicacion
     equipo_bd.entrenador = datos_equipo.entrenador
+    equipo_bd.imagen_url = datos_equipo.imagen_url  # Actualizar el campo imagen_url
 
     sesion_bd.commit()
     sesion_bd.refresh(equipo_bd)

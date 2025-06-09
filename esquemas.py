@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
+# Esquemas para Estadisticas
 class EstadisticasBase(BaseModel):
     puntosGenerales: Optional[int] = 0
     puntosAtaque: Optional[int] = 0
@@ -19,6 +20,7 @@ class EstadisticasResponse(EstadisticasBase):
     class Config:
         from_attributes = True
 
+# Esquemas para EstadoJugador
 class EstadoJugadorBase(BaseModel):
     alturaCm: Optional[float] = None
     saltoBloqueoCm: Optional[float] = None
@@ -35,13 +37,17 @@ class EstadoJugadorResponse(EstadoJugadorBase):
     class Config:
         from_attributes = True
 
+# Esquema para Equipo (para que JugadorResponse pueda referenciarlo)
 class EquipoForJugador(BaseModel):
     id: int
     nombre: str
+    # Incluimos la imagen_url también aquí para que se cargue cuando se obtiene un jugador
+    imagen_url: Optional[str] = None
 
     class Config:
         from_attributes = True
 
+# Esquemas para Jugador
 class JugadorBase(BaseModel):
     nombre: str
     posicion: str
@@ -62,16 +68,20 @@ class JugadorResponse(JugadorBase):
     class Config:
         from_attributes = True
 
+# Esquemas para Equipo
 class EquipoBase(BaseModel):
     nombre: str
     ubicacion: str
     entrenador: str
+    # Nuevo campo para la URL de la imagen del equipo
+    imagen_url: Optional[str] = None
 
 class EquipoCreate(EquipoBase):
     pass
 
 class EquipoResponse(EquipoBase):
     id: int
+    # Los jugadores dentro de EquipoResponse también necesitan el campo imagen_url
     jugadores: List[JugadorResponse] = []
 
     class Config:

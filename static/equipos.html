@@ -46,6 +46,13 @@
         .overflow-x-auto {
             overflow-x: auto;
         }
+        .team-image {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 1px solid #FF4D4D;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 bg-gray-900 text-custom-light">
@@ -66,7 +73,6 @@
         <div class="mb-12 p-6 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
             <h2 class="text-2xl font-semibold text-custom-light mb-4">Registrar Nuevo Equipo</h2>
             <form id="registroEquipoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                <!-- Campo oculto para el ID del equipo en modo edición -->
                 <input type="hidden" id="equipoIdToEdit" name="id">
 
                 <div>
@@ -80,6 +86,10 @@
                 <div class="md:col-span-2">
                     <label for="entrenadorEquipo" class="block text-gray-400 text-sm font-bold mb-2">Entrenador:</label>
                     <input type="text" id="entrenadorEquipo" name="entrenador" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="imagenUrlEquipo" class="block text-gray-400 text-sm font-bold mb-2">URL de la Imagen (Opcional):</label>
+                    <input type="url" id="imagenUrlEquipo" name="imagen_url" placeholder="https://ejemplo.com/logo.jpg" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700">
                 </div>
                 <div class="md:col-span-2 flex justify-center mt-6 space-x-4">
                     <button type="submit" id="submitEquipoButton" class="bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1">
@@ -99,6 +109,7 @@
                 <table class="min-w-full divide-y divide-gray-700">
                     <thead>
                         <tr>
+                            <th>Imagen</th>
                             <th>ID</th>
                             <th>Nombre</th>
                             <th>Ubicación</th>
@@ -118,7 +129,7 @@
 
     <script>
         const API_BASE_URL = 'https://proyectosuperligadevoleibol-desarrollo.onrender.com';
-        let currentEditingEquipoId = null; // Variable para almacenar el ID del equipo en edición
+        let currentEditingEquipoId = null;
 
         const registroEquipoForm = document.getElementById('registroEquipoForm');
         const submitEquipoButton = document.getElementById('submitEquipoButton');
@@ -147,6 +158,7 @@
                 nombre: form.nombreEquipo.value,
                 ubicacion: form.ubicacionEquipo.value,
                 entrenador: form.entrenadorEquipo.value,
+                imagen_url: form.imagenUrlEquipo.value // Captura la URL de la imagen del equipo
             };
 
             let url = `${API_BASE_URL}/equipos/`;
@@ -172,8 +184,8 @@
 
                 if (response.ok) {
                     mostrarMensaje('mensajeRegistro', `Equipo ${data.nombre} ${successMessage} con éxito (ID: ${data.id})`, 'success');
-                    resetFormAndMode(); // Reinicia el formulario y el modo
-                    fetchEquipos(); // Recarga la tabla
+                    resetFormAndMode();
+                    fetchEquipos();
                 } else {
                     mostrarMensaje('mensajeRegistro', `Error al ${successMessage} equipo: ${data.detail || JSON.stringify(data)}`, 'error');
                 }
@@ -185,7 +197,7 @@
 
         async function fetchEquipos() {
             const tablaBody = document.getElementById('equiposTablaBody');
-            tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Cargando equipos...</td></tr>';
+            tablaBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-400">Cargando equipos...</td></tr>'; // Colspan ajustado
             mostrarMensaje('mensajeLista', '', 'info');
 
             try {
@@ -196,7 +208,7 @@
                 const equipos = await response.json();
 
                 if (equipos.length === 0) {
-                    tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">No hay equipos registrados.</td></tr>';
+                    tablaBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-400">No hay equipos registrados.</td></tr>'; // Colspan ajustado
                     mostrarMensaje('mensajeLista', 'Crea un equipo usando el formulario de arriba.', 'info');
                     return;
                 }
@@ -205,6 +217,29 @@
                 equipos.forEach(equipo => {
                     const row = tablaBody.insertRow();
                     row.className = 'text-gray-300';
+
+                    // Columna de Imagen del Equipo
+                    const imageCell = row.insertCell();
+                    if (equipo.imagen_url) {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = equipo.imagen_url;
+                        imgElement.alt = `Logo de ${equipo.nombre}`;
+                        imgElement.className = 'team-image';
+                        // Fallback para imágenes que no cargan
+                        imgElement.onerror = function() {
+                            this.onerror=null; // Evita bucles infinitos de error
+                            this.src='https://placehold.co/40x40/262626/FFFFFF?text=Logo'; // Placeholder genérico
+                            this.alt='Imagen no disponible';
+                        };
+                        imageCell.appendChild(imgElement);
+                    } else {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = 'https://placehold.co/40x40/262626/FFFFFF?text=Logo'; // Placeholder si no hay URL
+                        imgElement.alt = 'No image';
+                        imgElement.className = 'team-image';
+                        imageCell.appendChild(imgElement);
+                    }
+
                     row.insertCell().textContent = equipo.id;
                     row.insertCell().textContent = equipo.nombre;
                     row.insertCell().textContent = equipo.ubicacion;
@@ -213,14 +248,12 @@
 
                     const accionesCell = row.insertCell();
 
-                    // Botón Editar
                     const editButton = document.createElement('button');
                     editButton.textContent = 'Editar';
                     editButton.className = 'bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded-full transition-all duration-200 mr-2';
                     editButton.onclick = () => handleEditEquipo(equipo.id);
                     accionesCell.appendChild(editButton);
 
-                    // Botón Eliminar
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Eliminar';
                     deleteButton.className = 'bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light text-xs font-bold py-1 px-2 rounded-full transition-all duration-200';
@@ -232,7 +265,7 @@
             } catch (error) {
                 console.error('Error al obtener equipos:', error);
                 mostrarMensaje('mensajeLista', `Error al cargar la lista de equipos: ${error.message}`, 'error');
-                tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-500">Error al cargar equipos.</td></tr>';
+                tablaBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500">Error al cargar equipos.</td></tr>'; // Colspan ajustado
             }
         }
 
@@ -245,16 +278,15 @@
                 }
                 const equipo = await response.json();
 
-                // Rellenar el formulario
                 equipoIdToEditInput.value = equipo.id;
                 document.getElementById('nombreEquipo').value = equipo.nombre;
                 document.getElementById('ubicacionEquipo').value = equipo.ubicacion;
                 document.getElementById('entrenadorEquipo').value = equipo.entrenador;
+                document.getElementById('imagenUrlEquipo').value = equipo.imagen_url || ''; // Rellenar URL de imagen
 
-                // Cambiar el modo del formulario a edición
                 currentEditingEquipoId = equipo.id;
                 submitEquipoButton.textContent = 'Actualizar Equipo';
-                cancelEditButton.style.display = 'inline-block'; // Mostrar botón de cancelar
+                cancelEditButton.style.display = 'inline-block';
                 mostrarMensaje('mensajeRegistro', `Editando equipo: ${equipo.nombre}`, 'info');
 
             } catch (error) {
@@ -267,16 +299,14 @@
             registroEquipoForm.reset();
             currentEditingEquipoId = null;
             submitEquipoButton.textContent = 'Registrar Equipo';
-            cancelEditButton.style.display = 'none'; // Ocultar botón de cancelar
-            equipoIdToEditInput.value = ''; // Limpiar el ID oculto
-            mostrarMensaje('mensajeRegistro', '', 'info'); // Limpiar mensaje
+            cancelEditButton.style.display = 'none';
+            equipoIdToEditInput.value = '';
+            mostrarMensaje('mensajeRegistro', '', 'info');
         }
 
         cancelEditButton.addEventListener('click', resetFormAndMode);
 
         async function handleDeleteEquipo(equipoId, equipoNombre) {
-            // Usar un modal personalizado en lugar de confirm()
-            // Por simplicidad, se usa confirm() aquí, pero en una app real se implementaría un modal
             if (confirm(`¿Estás seguro de que quieres eliminar al equipo ${equipoNombre} (ID: ${equipoId})? Esto también eliminará a todos sus jugadores asociados.`)) {
                 mostrarMensaje('mensajeLista', `Eliminando equipo ${equipoNombre}...`, 'info');
                 try {
@@ -289,7 +319,7 @@
 
                     if (response.status === 204) {
                         mostrarMensaje('mensajeLista', `Equipo ${equipoNombre} eliminado con éxito.`, 'success');
-                        fetchEquipos(); // Recargar la tabla
+                        fetchEquipos();
                     } else {
                         const errorData = await response.json();
                         mostrarMensaje('mensajeLista', `Error al eliminar equipo: ${errorData.detail || 'Error desconocido'}`, 'error');
@@ -301,7 +331,6 @@
             }
         }
 
-        // Cargar equipos al cargar la página
         window.onload = fetchEquipos;
     </script>
 </body>
