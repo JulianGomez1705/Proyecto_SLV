@@ -46,6 +46,13 @@
         .overflow-x-auto {
             overflow-x: auto;
         }
+        .player-image {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 1px solid #FF4D4D;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 bg-gray-900 text-custom-light">
@@ -76,6 +83,10 @@
                 <div>
                     <label for="posicionJugador" class="block text-gray-400 text-sm font-bold mb-2">Posición:</label>
                     <input type="text" id="posicionJugador" name="posicion" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="imagenUrlJugador" class="block text-gray-400 text-sm font-bold mb-2">URL de la Imagen (Opcional):</label>
+                    <input type="url" id="imagenUrlJugador" name="imagen_url" placeholder="https://ejemplo.com/imagen.jpg" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700">
                 </div>
                 <div class="md:col-span-2">
                     <label for="equipoIdJugador" class="block text-gray-400 text-sm font-bold mb-2">Equipo (ID):</label>
@@ -145,6 +156,7 @@
                 <table class="min-w-full divide-y divide-gray-700">
                     <thead>
                         <tr>
+                            <th>Imagen</th>
                             <th>ID</th>
                             <th>Nombre</th>
                             <th>Posición</th>
@@ -217,6 +229,7 @@
             const jugadorData = {
                 nombre: form.nombreJugador.value,
                 posicion: form.posicionJugador.value,
+                imagen_url: form.imagenUrlJugador.value,
                 equipo_id: form.equipoIdJugador.value ? parseInt(form.equipoIdJugador.value) : null,
                 estadisticas: {},
                 estadoJugador: {}
@@ -279,7 +292,7 @@
 
         async function fetchJugadores() {
             const tablaBody = document.getElementById('jugadoresTablaBody');
-            tablaBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-400">Cargando jugadores...</td></tr>';
+            tablaBody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-gray-400">Cargando jugadores...</td></tr>';
             mostrarMensaje('mensajeLista', '', 'info');
 
             try {
@@ -290,7 +303,7 @@
                 const jugadores = await response.json();
 
                 if (jugadores.length === 0) {
-                    tablaBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-400">No hay jugadores registrados.</td></tr>';
+                    tablaBody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-gray-400">No hay jugadores registrados.</td></tr>';
                     mostrarMensaje('mensajeLista', 'Crea un jugador usando el formulario de arriba.', 'info');
                     return;
                 }
@@ -299,6 +312,27 @@
                 jugadores.forEach(jugador => {
                     const row = tablaBody.insertRow();
                     row.className = 'text-gray-300';
+
+                    const imageCell = row.insertCell();
+                    if (jugador.imagen_url) {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = jugador.imagen_url;
+                        imgElement.alt = `Imagen de ${jugador.nombre}`;
+                        imgElement.className = 'player-image';
+                        imgElement.onerror = function() {
+                            this.onerror=null;
+                            this.src='https://placehold.co/40x40/262626/FFFFFF?text=N/A';
+                            this.alt='Imagen no disponible';
+                        };
+                        imageCell.appendChild(imgElement);
+                    } else {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = 'https://placehold.co/40x40/262626/FFFFFF?text=N/A';
+                        imgElement.alt = 'No image';
+                        imgElement.className = 'player-image';
+                        imageCell.appendChild(imgElement);
+                    }
+
                     row.insertCell().textContent = jugador.id;
                     row.insertCell().textContent = jugador.nombre;
                     row.insertCell().textContent = jugador.posicion;
@@ -326,7 +360,7 @@
             } catch (error) {
                 console.error('Error al obtener jugadores:', error);
                 mostrarMensaje('mensajeLista', `Error al cargar la lista de jugadores: ${error.message}`, 'error');
-                tablaBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">Error al cargar jugadores.</td></tr>';
+                tablaBody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-red-500">Error al cargar jugadores.</td></tr>';
             }
         }
 
@@ -342,6 +376,7 @@
                 jugadorIdToEditInput.value = jugador.id;
                 document.getElementById('nombreJugador').value = jugador.nombre;
                 document.getElementById('posicionJugador').value = jugador.posicion;
+                document.getElementById('imagenUrlJugador').value = jugador.imagen_url || '';
 
                 const equipoSelect = document.getElementById('equipoIdJugador');
                 if (jugador.equipo_id) {
