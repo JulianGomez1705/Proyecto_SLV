@@ -8,11 +8,10 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1A1A1A; /* Color de fondo oscuro base */
+            background-color: #1A1A1A;
         }
-        /* Colores personalizados del diseño de Gymso Fitness */
         .text-custom-gym-orange {
-            color: #FF4D4D; /* Un rojo/naranja brillante */
+            color: #FF4D4D;
         }
         .bg-custom-gym-orange {
             background-color: #FF4D4D;
@@ -24,26 +23,25 @@
             color: #FFFFFF;
         }
         .bg-custom-dark-gray {
-            background-color: #262626; /* Un gris oscuro */
+            background-color: #262626;
         }
         .hover\:bg-custom-dark-gray-light:hover {
-            background-color: #4A4A4A; /* Un gris un poco más claro al hacer hover */
+            background-color: #4A4A4A;
         }
-        /* Estilos específicos para la tabla, adaptados al nuevo tema */
         th, td {
             padding: 0.75rem;
             text-align: left;
-            border-bottom: 1px solid #3A3A3A; /* Gris más oscuro para bordes de tabla */
+            border-bottom: 1px solid #3A3A3A;
         }
         th {
-            background-color: #333333; /* Gris oscuro para encabezados de tabla */
-            color: #E0E0E0; /* Texto claro */
+            background-color: #333333;
+            color: #E0E0E0;
         }
         tr:nth-child(even) {
-            background-color: #2C2C2C; /* Filas pares un poco más claras */
+            background-color: #2C2C2C;
         }
         tr:nth-child(odd) {
-            background-color: #212121; /* Filas impares más oscuras */
+            background-color: #212121;
         }
         .overflow-x-auto {
             overflow-x: auto;
@@ -51,14 +49,12 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 bg-gray-900 text-custom-light">
-    <!-- Menú de Navegación (adaptado al nuevo diseño) -->
     <nav class="w-full max-w-5xl bg-custom-dark-gray bg-opacity-90 rounded-xl shadow-lg p-4 mb-8 flex justify-center space-x-8 md:space-x-12 lg:space-x-16 z-10">
         <a href="index.html" class="text-custom-light hover:text-custom-gym-orange text-lg sm:text-xl font-semibold transition-colors duration-200">HOME</a>
         <a href="jugadores.html" class="text-custom-light hover:text-custom-gym-orange text-lg sm:text-xl font-semibold transition-colors duration-200">JUGADORES</a>
         <a href="equipos.html" class="text-custom-gym-orange hover:text-custom-light text-lg sm:text-xl font-semibold transition-colors duration-200">EQUIPOS</a>
     </nav>
 
-    <!-- Contenedor principal de la página de Equipos -->
     <div class="bg-custom-dark-gray rounded-xl shadow-2xl p-6 sm:p-8 lg:p-12 max-w-5xl w-full text-center border border-gray-700 text-custom-light">
         <h1 class="text-3xl sm:text-4xl font-extrabold text-custom-gym-orange mb-6">
             Gestión de Equipos
@@ -67,10 +63,12 @@
             Aquí puedes registrar nuevos equipos y ver la lista completa de equipos existentes.
         </p>
 
-        <!-- Sección de Registro de Equipos -->
         <div class="mb-12 p-6 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
             <h2 class="text-2xl font-semibold text-custom-light mb-4">Registrar Nuevo Equipo</h2>
             <form id="registroEquipoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                <!-- Campo oculto para el ID del equipo en modo edición -->
+                <input type="hidden" id="equipoIdToEdit" name="id">
+
                 <div>
                     <label for="nombreEquipo" class="block text-gray-400 text-sm font-bold mb-2">Nombre del Equipo:</label>
                     <input type="text" id="nombreEquipo" name="nombre" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
@@ -83,16 +81,18 @@
                     <label for="entrenadorEquipo" class="block text-gray-400 text-sm font-bold mb-2">Entrenador:</label>
                     <input type="text" id="entrenadorEquipo" name="entrenador" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
                 </div>
-                <div class="md:col-span-2 flex justify-center mt-6">
-                    <button type="submit" class="bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1">
+                <div class="md:col-span-2 flex justify-center mt-6 space-x-4">
+                    <button type="submit" id="submitEquipoButton" class="bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1">
                         Registrar Equipo
+                    </button>
+                    <button type="button" id="cancelEditButton" class="border border-gray-500 text-gray-300 hover:bg-gray-700 font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1" style="display: none;">
+                        Cancelar Edición
                     </button>
                 </div>
             </form>
             <div id="mensajeRegistro" class="mt-4 text-center text-sm font-semibold"></div>
         </div>
 
-        <!-- Sección de Lista de Equipos -->
         <div class="p-6 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
             <h2 class="text-2xl font-semibold text-custom-light mb-4">Equipos Existentes</h2>
             <div class="overflow-x-auto rounded-lg">
@@ -117,10 +117,14 @@
     </div>
 
     <script>
-        // URL base de su API desplegada en Render
         const API_BASE_URL = 'https://proyectosuperligadevoleibol-desarrollo.onrender.com';
+        let currentEditingEquipoId = null; // Variable para almacenar el ID del equipo en edición
 
-        // Función para mostrar mensajes al usuario
+        const registroEquipoForm = document.getElementById('registroEquipoForm');
+        const submitEquipoButton = document.getElementById('submitEquipoButton');
+        const cancelEditButton = document.getElementById('cancelEditButton');
+        const equipoIdToEditInput = document.getElementById('equipoIdToEdit');
+
         function mostrarMensaje(idElemento, mensaje, tipo = 'info') {
             const elemento = document.getElementById(idElemento);
             elemento.textContent = mensaje;
@@ -128,16 +132,15 @@
             if (tipo === 'success') {
                 elemento.classList.add('text-custom-gym-orange');
             } else if (tipo === 'error') {
-                elemento.classList.add('text-red-500'); // Mantener rojo para errores
+                elemento.classList.add('text-red-500');
             } else {
-                elemento.classList.add('text-blue-400'); // Mantener azul para info
+                elemento.classList.add('text-blue-400');
             }
         }
 
-        // Función para registrar un nuevo equipo
-        document.getElementById('registroEquipoForm').addEventListener('submit', async (event) => {
+        registroEquipoForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            mostrarMensaje('mensajeRegistro', 'Registrando equipo...', 'info');
+            mostrarMensaje('mensajeRegistro', 'Procesando equipo...', 'info');
 
             const form = event.target;
             const equipoData = {
@@ -146,9 +149,19 @@
                 entrenador: form.entrenadorEquipo.value,
             };
 
+            let url = `${API_BASE_URL}/equipos/`;
+            let method = 'POST';
+            let successMessage = 'registrado';
+
+            if (currentEditingEquipoId) {
+                url = `${API_BASE_URL}/equipos/${currentEditingEquipoId}`;
+                method = 'PUT';
+                successMessage = 'actualizado';
+            }
+
             try {
-                const response = await fetch(`${API_BASE_URL}/equipos/`, {
-                    method: 'POST',
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -158,11 +171,11 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    mostrarMensaje('mensajeRegistro', `Equipo ${data.nombre} registrado con éxito (ID: ${data.id})`, 'success');
-                    form.reset(); // Limpiar el formulario
-                    fetchEquipos(); // Recargar la lista de equipos
+                    mostrarMensaje('mensajeRegistro', `Equipo ${data.nombre} ${successMessage} con éxito (ID: ${data.id})`, 'success');
+                    resetFormAndMode(); // Reinicia el formulario y el modo
+                    fetchEquipos(); // Recarga la tabla
                 } else {
-                    mostrarMensaje('mensajeRegistro', `Error al registrar equipo: ${data.detail || JSON.stringify(data)}`, 'error');
+                    mostrarMensaje('mensajeRegistro', `Error al ${successMessage} equipo: ${data.detail || JSON.stringify(data)}`, 'error');
                 }
             } catch (error) {
                 console.error('Error al enviar el formulario:', error);
@@ -170,11 +183,10 @@
             }
         });
 
-        // Función para cargar y mostrar los equipos existentes
         async function fetchEquipos() {
             const tablaBody = document.getElementById('equiposTablaBody');
             tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Cargando equipos...</td></tr>';
-            mostrarMensaje('mensajeLista', '', 'info'); // Limpiar mensaje previo
+            mostrarMensaje('mensajeLista', '', 'info');
 
             try {
                 const response = await fetch(`${API_BASE_URL}/equipos/`);
@@ -189,7 +201,7 @@
                     return;
                 }
 
-                tablaBody.innerHTML = ''; // Limpiar filas existentes
+                tablaBody.innerHTML = '';
                 equipos.forEach(equipo => {
                     const row = tablaBody.insertRow();
                     row.className = 'text-gray-300';
@@ -197,10 +209,18 @@
                     row.insertCell().textContent = equipo.nombre;
                     row.insertCell().textContent = equipo.ubicacion;
                     row.insertCell().textContent = equipo.entrenador;
-                    row.insertCell().textContent = equipo.jugadores ? equipo.jugadores.length : 0; // Mostrar número de jugadores
+                    row.insertCell().textContent = equipo.jugadores ? equipo.jugadores.length : 0;
 
-                    // Columna de Acciones (para futuros PUT/DELETE)
                     const accionesCell = row.insertCell();
+
+                    // Botón Editar
+                    const editButton = document.createElement('button');
+                    editButton.textContent = 'Editar';
+                    editButton.className = 'bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded-full transition-all duration-200 mr-2';
+                    editButton.onclick = () => handleEditEquipo(equipo.id);
+                    accionesCell.appendChild(editButton);
+
+                    // Botón Eliminar
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Eliminar';
                     deleteButton.className = 'bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light text-xs font-bold py-1 px-2 rounded-full transition-all duration-200';
@@ -216,8 +236,47 @@
             }
         }
 
-        // Función para eliminar un equipo
+        async function handleEditEquipo(equipoId) {
+            mostrarMensaje('mensajeRegistro', 'Cargando datos del equipo para edición...', 'info');
+            try {
+                const response = await fetch(`${API_BASE_URL}/equipos/${equipoId}`);
+                if (!response.ok) {
+                    throw new Error(`Error al cargar datos del equipo: ${response.statusText}`);
+                }
+                const equipo = await response.json();
+
+                // Rellenar el formulario
+                equipoIdToEditInput.value = equipo.id;
+                document.getElementById('nombreEquipo').value = equipo.nombre;
+                document.getElementById('ubicacionEquipo').value = equipo.ubicacion;
+                document.getElementById('entrenadorEquipo').value = equipo.entrenador;
+
+                // Cambiar el modo del formulario a edición
+                currentEditingEquipoId = equipo.id;
+                submitEquipoButton.textContent = 'Actualizar Equipo';
+                cancelEditButton.style.display = 'inline-block'; // Mostrar botón de cancelar
+                mostrarMensaje('mensajeRegistro', `Editando equipo: ${equipo.nombre}`, 'info');
+
+            } catch (error) {
+                console.error('Error al editar equipo:', error);
+                mostrarMensaje('mensajeRegistro', `Error al cargar datos del equipo: ${error.message}`, 'error');
+            }
+        }
+
+        function resetFormAndMode() {
+            registroEquipoForm.reset();
+            currentEditingEquipoId = null;
+            submitEquipoButton.textContent = 'Registrar Equipo';
+            cancelEditButton.style.display = 'none'; // Ocultar botón de cancelar
+            equipoIdToEditInput.value = ''; // Limpiar el ID oculto
+            mostrarMensaje('mensajeRegistro', '', 'info'); // Limpiar mensaje
+        }
+
+        cancelEditButton.addEventListener('click', resetFormAndMode);
+
         async function handleDeleteEquipo(equipoId, equipoNombre) {
+            // Usar un modal personalizado en lugar de confirm()
+            // Por simplicidad, se usa confirm() aquí, pero en una app real se implementaría un modal
             if (confirm(`¿Estás seguro de que quieres eliminar al equipo ${equipoNombre} (ID: ${equipoId})? Esto también eliminará a todos sus jugadores asociados.`)) {
                 mostrarMensaje('mensajeLista', `Eliminando equipo ${equipoNombre}...`, 'info');
                 try {
@@ -228,7 +287,7 @@
                         },
                     });
 
-                    if (response.status === 204) { // 204 No Content es para eliminaciones exitosas
+                    if (response.status === 204) {
                         mostrarMensaje('mensajeLista', `Equipo ${equipoNombre} eliminado con éxito.`, 'success');
                         fetchEquipos(); // Recargar la tabla
                     } else {
@@ -247,4 +306,3 @@
     </script>
 </body>
 </html>
-
