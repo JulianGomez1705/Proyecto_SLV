@@ -8,11 +8,10 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1A1A1A; /* Color de fondo oscuro base */
+            background-color: #1A1A1A;
         }
-        /* Colores personalizados del diseño de Gymso Fitness */
         .text-custom-gym-orange {
-            color: #FF4D4D; /* Un rojo/naranja brillante */
+            color: #FF4D4D;
         }
         .bg-custom-gym-orange {
             background-color: #FF4D4D;
@@ -24,26 +23,25 @@
             color: #FFFFFF;
         }
         .bg-custom-dark-gray {
-            background-color: #262626; /* Un gris oscuro */
+            background-color: #262626;
         }
         .hover\:bg-custom-dark-gray-light:hover {
-            background-color: #4A4A4A; /* Un gris un poco más claro al hacer hover */
+            background-color: #4A4A4A;
         }
-        /* Estilos específicos para la tabla, adaptados al nuevo tema */
         th, td {
             padding: 0.75rem;
             text-align: left;
-            border-bottom: 1px solid #3A3A3A; /* Gris más oscuro para bordes de tabla */
+            border-bottom: 1px solid #3A3A3A;
         }
         th {
-            background-color: #333333; /* Gris oscuro para encabezados de tabla */
-            color: #E0E0E0; /* Texto claro */
+            background-color: #333333;
+            color: #E0E0E0;
         }
         tr:nth-child(even) {
-            background-color: #2C2C2C; /* Filas pares un poco más claras */
+            background-color: #2C2C2C;
         }
         tr:nth-child(odd) {
-            background-color: #212121; /* Filas impares más oscuras */
+            background-color: #212121;
         }
         .overflow-x-auto {
             overflow-x: auto;
@@ -51,7 +49,6 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 bg-gray-900 text-custom-light">
-    <!-- Menú de Navegación (adaptado al nuevo diseño) -->
     <nav class="w-full max-w-5xl bg-custom-dark-gray bg-opacity-90 rounded-xl shadow-lg p-4 mb-8 flex justify-center space-x-8 md:space-x-12 lg:space-x-16 z-10">
         <a href="index.html" class="text-custom-light hover:text-custom-gym-orange text-lg sm:text-xl font-semibold transition-colors duration-200">HOME</a>
         <a href="jugadores.html" class="text-custom-gym-orange hover:text-custom-light text-lg sm:text-xl font-semibold transition-colors duration-200">JUGADORES</a>
@@ -69,6 +66,8 @@
         <div class="mb-12 p-6 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
             <h2 class="text-2xl font-semibold text-custom-light mb-4">Registrar Nuevo Jugador</h2>
             <form id="registroJugadorForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                <input type="hidden" id="jugadorIdToEdit" name="id">
+
                 <div class="md:col-span-2 text-custom-gym-orange text-xl font-bold mb-2">Datos del Jugador</div>
                 <div>
                     <label for="nombreJugador" class="block text-gray-400 text-sm font-bold mb-2">Nombre:</label>
@@ -128,9 +127,12 @@
                     <input type="text" id="lesion" name="lesion" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700">
                 </div>
 
-                <div class="md:col-span-2 flex justify-center mt-6">
-                    <button type="submit" class="bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1">
+                <div class="md:col-span-2 flex justify-center mt-6 space-x-4">
+                    <button type="submit" id="submitJugadorButton" class="bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1">
                         Registrar Jugador
+                    </button>
+                    <button type="button" id="cancelEditButton" class="border border-gray-500 text-gray-300 hover:bg-gray-700 font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1" style="display: none;">
+                        Cancelar Edición
                     </button>
                 </div>
             </form>
@@ -163,6 +165,12 @@
 
     <script>
         const API_BASE_URL = 'https://proyectosuperligadevoleibol-desarrollo.onrender.com';
+        let currentEditingJugadorId = null;
+
+        const registroJugadorForm = document.getElementById('registroJugadorForm');
+        const submitJugadorButton = document.getElementById('submitJugadorButton');
+        const cancelEditButton = document.getElementById('cancelEditButton');
+        const jugadorIdToEditInput = document.getElementById('jugadorIdToEdit');
 
         function mostrarMensaje(idElemento, mensaje, tipo = 'info') {
             const elemento = document.getElementById(idElemento);
@@ -171,9 +179,9 @@
             if (tipo === 'success') {
                 elemento.classList.add('text-custom-gym-orange');
             } else if (tipo === 'error') {
-                elemento.classList.add('text-red-500'); /* Mantener rojo para errores */
+                elemento.classList.add('text-red-500');
             } else {
-                elemento.classList.add('text-blue-400'); /* Mantener azul para info */
+                elemento.classList.add('text-blue-400');
             }
         }
 
@@ -201,9 +209,9 @@
             }
         }
 
-        document.getElementById('registroJugadorForm').addEventListener('submit', async (event) => {
+        registroJugadorForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            mostrarMensaje('mensajeRegistro', 'Registrando jugador...', 'info');
+            mostrarMensaje('mensajeRegistro', 'Procesando jugador...', 'info');
 
             const form = event.target;
             const jugadorData = {
@@ -235,9 +243,19 @@
                 delete jugadorData.estadoJugador;
             }
 
+            let url = `${API_BASE_URL}/jugadores/`;
+            let method = 'POST';
+            let successMessage = 'registrado';
+
+            if (currentEditingJugadorId) {
+                url = `${API_BASE_URL}/jugadores/${currentEditingJugadorId}`;
+                method = 'PUT';
+                successMessage = 'actualizado';
+            }
+
             try {
-                const response = await fetch(`${API_BASE_URL}/jugadores/`, {
-                    method: 'POST',
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -247,11 +265,11 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    mostrarMensaje('mensajeRegistro', `Jugador ${data.nombre} registrado con éxito (ID: ${data.id})`, 'success');
-                    form.reset();
+                    mostrarMensaje('mensajeRegistro', `Jugador ${data.nombre} ${successMessage} con éxito (ID: ${data.id})`, 'success');
+                    resetFormAndMode();
                     fetchJugadores();
                 } else {
-                    mostrarMensaje('mensajeRegistro', `Error al registrar jugador: ${data.detail || JSON.stringify(data)}`, 'error');
+                    mostrarMensaje('mensajeRegistro', `Error al ${successMessage} jugador: ${data.detail || JSON.stringify(data)}`, 'error');
                 }
             } catch (error) {
                 console.error('Error al enviar el formulario:', error);
@@ -290,6 +308,13 @@
                     row.insertCell().textContent = jugador.estadisticas ? (jugador.estadisticas.puntosGenerales || 0) : 0;
 
                     const accionesCell = row.insertCell();
+
+                    const editButton = document.createElement('button');
+                    editButton.textContent = 'Editar';
+                    editButton.className = 'bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded-full transition-all duration-200 mr-2';
+                    editButton.onclick = () => handleEditJugador(jugador.id);
+                    accionesCell.appendChild(editButton);
+
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Eliminar';
                     deleteButton.className = 'bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light text-xs font-bold py-1 px-2 rounded-full transition-all duration-200';
@@ -304,6 +329,61 @@
                 tablaBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">Error al cargar jugadores.</td></tr>';
             }
         }
+
+        async function handleEditJugador(jugadorId) {
+            mostrarMensaje('mensajeRegistro', 'Cargando datos del jugador para edición...', 'info');
+            try {
+                const response = await fetch(`${API_BASE_URL}/jugadores/${jugadorId}`);
+                if (!response.ok) {
+                    throw new Error(`Error al cargar datos del jugador: ${response.statusText}`);
+                }
+                const jugador = await response.json();
+
+                jugadorIdToEditInput.value = jugador.id;
+                document.getElementById('nombreJugador').value = jugador.nombre;
+                document.getElementById('posicionJugador').value = jugador.posicion;
+
+                const equipoSelect = document.getElementById('equipoIdJugador');
+                if (jugador.equipo_id) {
+                    await loadEquiposForDropdown();
+                    equipoSelect.value = jugador.equipo_id;
+                } else {
+                    equipoSelect.value = '';
+                }
+
+                document.getElementById('puntosGenerales').value = jugador.estadisticas?.puntosGenerales || 0;
+                document.getElementById('puntosAtaque').value = jugador.estadisticas?.puntosAtaque || 0;
+                document.getElementById('puntosBloqueo').value = jugador.estadisticas?.puntosBloqueo || 0;
+                document.getElementById('puntosSaque').value = jugador.estadisticas?.puntosSaque || 0;
+                document.getElementById('recepcionesExitosas').value = jugador.estadisticas?.recepcionesExitosas || 0;
+                document.getElementById('recepcionesErradas').value = jugador.estadisticas?.recepcionesErradas || 0;
+
+                document.getElementById('alturaCm').value = jugador.estadoJugador?.alturaCm || '';
+                document.getElementById('saltoBloqueoCm').value = jugador.estadoJugador?.saltoBloqueoCm || '';
+                document.getElementById('saltoAtaqueCm').value = jugador.estadoJugador?.saltoAtaqueCm || '';
+                document.getElementById('lesion').value = jugador.estadoJugador?.lesion || '';
+
+                currentEditingJugadorId = jugador.id;
+                submitJugadorButton.textContent = 'Actualizar Jugador';
+                cancelEditButton.style.display = 'inline-block';
+                mostrarMensaje('mensajeRegistro', `Editando jugador: ${jugador.nombre}`, 'info');
+
+            } catch (error) {
+                console.error('Error al editar jugador:', error);
+                mostrarMensaje('mensajeRegistro', `Error al cargar datos del jugador: ${error.message}`, 'error');
+            }
+        }
+
+        function resetFormAndMode() {
+            registroJugadorForm.reset();
+            currentEditingJugadorId = null;
+            submitJugadorButton.textContent = 'Registrar Jugador';
+            cancelEditButton.style.display = 'none';
+            jugadorIdToEditInput.value = '';
+            mostrarMensaje('mensajeRegistro', '', 'info');
+        }
+
+        cancelEditButton.addEventListener('click', resetFormAndMode);
 
         async function handleDeleteJugador(jugadorId, jugadorNombre) {
             if (confirm(`¿Estás seguro de que quieres eliminar a ${jugadorNombre} (ID: ${jugadorId})?`)) {
@@ -337,6 +417,3 @@
     </script>
 </body>
 </html>
-
-
-
