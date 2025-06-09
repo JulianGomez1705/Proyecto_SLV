@@ -8,68 +8,68 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #1A1A1A; /* Color de fondo oscuro base */
         }
-        .text-custom-red {
-            color: #DA121A;
+        /* Colores personalizados del diseño de Gymso Fitness */
+        .text-custom-gym-orange {
+            color: #FF4D4D; /* Un rojo/naranja brillante */
         }
-        .border-custom-red {
-            border-color: #DA121A;
+        .bg-custom-gym-orange {
+            background-color: #FF4D4D;
         }
-        .bg-custom-red {
-            background-color: #DA121A;
+        .border-custom-gym-orange {
+            border-color: #FF4D4D;
         }
-        .hover\:bg-custom-red-dark:hover {
-            background-color: #B40F15;
+        .text-custom-light {
+            color: #FFFFFF;
         }
-        .text-custom-green {
-            color: #33CC66;
+        .bg-custom-dark-gray {
+            background-color: #262626; /* Un gris oscuro */
         }
-        .border-custom-green {
-            border-color: #33CC66;
+        .hover\:bg-custom-dark-gray-light:hover {
+            background-color: #4A4A4A; /* Un gris un poco más claro al hacer hover */
         }
-        .bg-custom-green {
-            background-color: #33CC66;
-        }
-        .hover\:bg-custom-green-dark:hover {
-            background-color: #2CA354;
-        }
+        /* Estilos específicos para la tabla, adaptados al nuevo tema */
         th, td {
             padding: 0.75rem;
             text-align: left;
-            border-bottom: 1px solid #4a5568;
+            border-bottom: 1px solid #3A3A3A; /* Gris más oscuro para bordes de tabla */
         }
         th {
-            background-color: #2d3748;
-            color: #e2e8f0;
+            background-color: #333333; /* Gris oscuro para encabezados de tabla */
+            color: #E0E0E0; /* Texto claro */
         }
         tr:nth-child(even) {
-            background-color: #2d3748;
+            background-color: #2C2C2C; /* Filas pares un poco más claras */
         }
         tr:nth-child(odd) {
-            background-color: #1a202c;
+            background-color: #212121; /* Filas impares más oscuras */
         }
         .overflow-x-auto {
             overflow-x: auto;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-[#DA121A] to-[#33CC66] min-h-screen flex flex-col items-center p-4">
-    <nav class="w-full max-w-5xl bg-gray-900 bg-opacity-90 rounded-xl shadow-lg p-4 mb-8 flex justify-center space-x-8 md:space-x-12 lg:space-x-16 z-10">
-        <a href="index.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Home</a>
-        <a href="jugadores.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Jugadores</a>
-        <a href="equipos.html" class="text-gray-200 hover:text-white text-lg sm:text-xl font-semibold transition-colors duration-200">Equipos</a>
+<body class="min-h-screen flex flex-col items-center p-4 bg-gray-900 text-custom-light">
+    <!-- Menú de Navegación (adaptado al nuevo diseño) -->
+    <nav class="w-full max-w-5xl bg-custom-dark-gray bg-opacity-90 rounded-xl shadow-lg p-4 mb-8 flex justify-center space-x-8 md:space-x-12 lg:space-x-16 z-10">
+        <a href="index.html" class="text-custom-light hover:text-custom-gym-orange text-lg sm:text-xl font-semibold transition-colors duration-200">HOME</a>
+        <a href="jugadores.html" class="text-custom-light hover:text-custom-gym-orange text-lg sm:text-xl font-semibold transition-colors duration-200">JUGADORES</a>
+        <a href="equipos.html" class="text-custom-gym-orange hover:text-custom-light text-lg sm:text-xl font-semibold transition-colors duration-200">EQUIPOS</a>
     </nav>
 
-    <div class="bg-gray-800 rounded-xl shadow-2xl p-6 sm:p-8 lg:p-12 max-w-5xl w-full text-center border border-gray-700 text-gray-200">
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-custom-green mb-6">
+    <!-- Contenedor principal de la página de Equipos -->
+    <div class="bg-custom-dark-gray rounded-xl shadow-2xl p-6 sm:p-8 lg:p-12 max-w-5xl w-full text-center border border-gray-700 text-custom-light">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-custom-gym-orange mb-6">
             Gestión de Equipos
         </h1>
-        <p class="text-lg sm:text-xl text-gray-300 mb-8">
+        <p class="text-lg sm:text-xl text-custom-light opacity-80 mb-8">
             Aquí puedes registrar nuevos equipos y ver la lista completa de equipos existentes.
         </p>
 
-        <div class="mb-12 p-6 bg-gray-900 rounded-lg border border-gray-700 shadow-md">
-            <h2 class="text-2xl font-semibold text-custom-red mb-4">Registrar Nuevo Equipo</h2>
+        <!-- Sección de Registro de Equipos -->
+        <div class="mb-12 p-6 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
+            <h2 class="text-2xl font-semibold text-custom-light mb-4">Registrar Nuevo Equipo</h2>
             <form id="registroEquipoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                 <div>
                     <label for="nombreEquipo" class="block text-gray-400 text-sm font-bold mb-2">Nombre del Equipo:</label>
@@ -84,7 +84,7 @@
                     <input type="text" id="entrenadorEquipo" name="entrenador" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline bg-gray-700" required>
                 </div>
                 <div class="md:col-span-2 flex justify-center mt-6">
-                    <button type="submit" class="bg-custom-red hover:bg-custom-red-dark text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1">
+                    <button type="submit" class="bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:-translate-y-1">
                         Registrar Equipo
                     </button>
                 </div>
@@ -92,8 +92,9 @@
             <div id="mensajeRegistro" class="mt-4 text-center text-sm font-semibold"></div>
         </div>
 
-        <div class="p-6 bg-gray-900 rounded-lg border border-gray-700 shadow-md">
-            <h2 class="text-2xl font-semibold text-custom-red mb-4">Equipos Existentes</h2>
+        <!-- Sección de Lista de Equipos -->
+        <div class="p-6 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
+            <h2 class="text-2xl font-semibold text-custom-light mb-4">Equipos Existentes</h2>
             <div class="overflow-x-auto rounded-lg">
                 <table class="min-w-full divide-y divide-gray-700">
                     <thead>
@@ -107,6 +108,7 @@
                         </tr>
                     </thead>
                     <tbody id="equiposTablaBody" class="divide-y divide-gray-800">
+                        <!-- Filas de equipos cargadas por JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -115,21 +117,24 @@
     </div>
 
     <script>
+        // URL base de su API desplegada en Render
         const API_BASE_URL = 'https://proyectosuperligadevoleibol-desarrollo.onrender.com';
 
+        // Función para mostrar mensajes al usuario
         function mostrarMensaje(idElemento, mensaje, tipo = 'info') {
             const elemento = document.getElementById(idElemento);
             elemento.textContent = mensaje;
             elemento.className = 'mt-4 text-center text-sm font-semibold ';
             if (tipo === 'success') {
-                elemento.classList.add('text-green-500');
+                elemento.classList.add('text-custom-gym-orange');
             } else if (tipo === 'error') {
-                elemento.classList.add('text-red-500');
+                elemento.classList.add('text-red-500'); // Mantener rojo para errores
             } else {
-                elemento.classList.add('text-blue-400');
+                elemento.classList.add('text-blue-400'); // Mantener azul para info
             }
         }
 
+        // Función para registrar un nuevo equipo
         document.getElementById('registroEquipoForm').addEventListener('submit', async (event) => {
             event.preventDefault();
             mostrarMensaje('mensajeRegistro', 'Registrando equipo...', 'info');
@@ -154,8 +159,8 @@
 
                 if (response.ok) {
                     mostrarMensaje('mensajeRegistro', `Equipo ${data.nombre} registrado con éxito (ID: ${data.id})`, 'success');
-                    form.reset();
-                    fetchEquipos();
+                    form.reset(); // Limpiar el formulario
+                    fetchEquipos(); // Recargar la lista de equipos
                 } else {
                     mostrarMensaje('mensajeRegistro', `Error al registrar equipo: ${data.detail || JSON.stringify(data)}`, 'error');
                 }
@@ -165,10 +170,11 @@
             }
         });
 
+        // Función para cargar y mostrar los equipos existentes
         async function fetchEquipos() {
             const tablaBody = document.getElementById('equiposTablaBody');
             tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Cargando equipos...</td></tr>';
-            mostrarMensaje('mensajeLista', '', 'info');
+            mostrarMensaje('mensajeLista', '', 'info'); // Limpiar mensaje previo
 
             try {
                 const response = await fetch(`${API_BASE_URL}/equipos/`);
@@ -183,7 +189,7 @@
                     return;
                 }
 
-                tablaBody.innerHTML = '';
+                tablaBody.innerHTML = ''; // Limpiar filas existentes
                 equipos.forEach(equipo => {
                     const row = tablaBody.insertRow();
                     row.className = 'text-gray-300';
@@ -191,12 +197,13 @@
                     row.insertCell().textContent = equipo.nombre;
                     row.insertCell().textContent = equipo.ubicacion;
                     row.insertCell().textContent = equipo.entrenador;
-                    row.insertCell().textContent = equipo.jugadores ? equipo.jugadores.length : 0;
+                    row.insertCell().textContent = equipo.jugadores ? equipo.jugadores.length : 0; // Mostrar número de jugadores
 
+                    // Columna de Acciones (para futuros PUT/DELETE)
                     const accionesCell = row.insertCell();
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Eliminar';
-                    deleteButton.className = 'bg-custom-red hover:bg-custom-red-dark text-white text-xs font-bold py-1 px-2 rounded-full transition-all duration-200';
+                    deleteButton.className = 'bg-custom-gym-orange hover:bg-custom-gym-orange-dark text-custom-light text-xs font-bold py-1 px-2 rounded-full transition-all duration-200';
                     deleteButton.onclick = () => handleDeleteEquipo(equipo.id, equipo.nombre);
                     accionesCell.appendChild(deleteButton);
                 });
@@ -209,6 +216,7 @@
             }
         }
 
+        // Función para eliminar un equipo
         async function handleDeleteEquipo(equipoId, equipoNombre) {
             if (confirm(`¿Estás seguro de que quieres eliminar al equipo ${equipoNombre} (ID: ${equipoId})? Esto también eliminará a todos sus jugadores asociados.`)) {
                 mostrarMensaje('mensajeLista', `Eliminando equipo ${equipoNombre}...`, 'info');
@@ -220,9 +228,9 @@
                         },
                     });
 
-                    if (response.status === 204) {
+                    if (response.status === 204) { // 204 No Content es para eliminaciones exitosas
                         mostrarMensaje('mensajeLista', `Equipo ${equipoNombre} eliminado con éxito.`, 'success');
-                        fetchEquipos();
+                        fetchEquipos(); // Recargar la tabla
                     } else {
                         const errorData = await response.json();
                         mostrarMensaje('mensajeLista', `Error al eliminar equipo: ${errorData.detail || 'Error desconocido'}`, 'error');
@@ -234,7 +242,9 @@
             }
         }
 
+        // Cargar equipos al cargar la página
         window.onload = fetchEquipos;
     </script>
 </body>
 </html>
+
